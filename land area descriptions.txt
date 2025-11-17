@@ -1,0 +1,26 @@
+
+
+unconserved forest: 
+
+                                    "Publicly and privately owned forests that are not protected from development"
+https://wildlandsandwoodlands.org/progress/dashboard/land-types/
+
+
+developed: 
+                                    "Built environment where people live and work, including cities, suburbs, towns, "
+                                    "and villages"
+https://wildlandsandwoodlands.org/progress/dashboard/land-types/
+
+
+
+protected woodlands:
+
+                                    "Woodlands are voluntarily protected from development and "
+                                    "managed for forest products, water supply, wildlife habitat, "
+                                    "recreation, aesthetics, and other objectives."
+https://harvardforest1.fas.harvard.edu/publications/pdfs/WandW-NE.pdf
+
+wildlands:
+                                    "Publicly and privately owned forests in which no active management occurs. "
+                                    "Natural processes shape the landscape over time"
+https://wildlandsandwoodlands.org/progress/dashboard/land-
