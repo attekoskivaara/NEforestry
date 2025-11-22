@@ -7,7 +7,35 @@ import dash_daq as daq
 import dash_bootstrap_components as dbc
 import numpy as np
 
-# --- Default values ---
+
+def lerp(a, b, t):
+    return int(a + (b - a) * t)
+
+
+def color_from_diff(v, default):
+    if v < 1.1:
+        return "rgba(0,0,0,0)"  # transparent for tiny values
+
+    diff = (v - default) / default
+
+    # scale diff into [0,1] smoothly but not too fast
+    t = min(1.0, abs(diff) ** 0.5)
+
+    # Neutral grey
+    gray = (180, 180, 180)
+
+    if diff > 0:
+        # grey → bright green
+        target = (0, 255, 0)
+    else:
+        # grey → bright red
+        target = (255, 0, 0)
+
+    r = lerp(gray[0], target[0], t)
+    g = lerp(gray[1], target[1], t)
+    b = lerp(gray[2], target[2], t)
+
+    return f"rgb({r},{g},{b})"
 # total forest area (constant)
 
 organization_options = [
@@ -17,7 +45,9 @@ organization_options = [
     {"label": "State or regional government agency", "value": "state_gov"},
     {"label": "National government agency", "value": "national_gov"},
     {"label": "Design or engineering firm (e.g., structural or architectural)", "value": "design_firm"},
-    {"label": "Other", "value": "other"}
+    {"label": "Contractor", "value": "contractor"},
+    {"label": "University or Research institute", "value": "research"},
+    {"label": "Other", "value": "other"},
 ]
 
 role_options = [
@@ -28,7 +58,8 @@ role_options = [
     {"label": "Forester", "value": "forester"},
     {"label": "Researcher / academic", "value": "researcher"},
     {"label": "Designer / engineer", "value": "designer"},
-    {"label": "Other", "value": "other"}
+    {"label": "Student", "value": "student"},
+    {"label": "Other", "value": "other"},
 ]
 
 new_england_states = [
@@ -80,6 +111,26 @@ DEFAULTS = {
     "logging_intensity": 27
 }
 
+DEFAULTS_NUMERIC = [
+    DEFAULTS["lumber"],
+    DEFAULTS["paper"],
+    DEFAULTS["fuelwood"],
+    DEFAULTS["import_lumber"],
+    DEFAULTS["import_paper"],
+    DEFAULTS["construction_multistory_val"],
+    DEFAULTS["construction_single_val"],
+    DEFAULTS["manufacturing_val"],
+    DEFAULTS["packaging_val"],
+    DEFAULTS["other_val"],
+    DEFAULTS["other_construction_val"],
+    DEFAULTS["non_res_construction_val"],  # tämä puuttui alkuperästä!
+    1,   # placeholder default
+    1,   # placeholder default
+    DEFAULTS["recovery_timber"],
+    DEFAULTS["from_lumber_to_pulp"]
+]
+
+
 logging_intensity_values = {1: 10, 2: 17, 3: 27, 4: 35, 5: 45}  # example mapping
 
 
@@ -97,23 +148,23 @@ input_style = {
 
 likert_questions = [
     {"id": "regional_economy",
-     "text": "…is the forest-based sector’s strengthening role in regional economies — by generating revenues, creating jobs, and maintaining profitable operations that support local livelihoods — compared to the current situation? "},
+     "text": "…the forest-based sector strengthens its role in regional economies — by generating revenues, creating jobs, and maintaining profitable operations that support local livelihoods — compared to the current situation? "},
     {"id": "local_owners",
-     "text": "…is it that the forest-based sector supports local forest owners by prioritizing the use of locally sourced wood and services, thereby strengthening local livelihoods and forest management capacity?"},
+     "text": "…the forest-based sector supports local forest owners by prioritizing the use of locally sourced wood and services, thereby strengthening local livelihoods and forest management capacity?"},
     {"id": "carbon_substitution",
-     "text": "…is it that future end-use applications emphasize the use of wood as a substitute for more carbon-intensive materials — for example in construction or through innovative bioeconomy solutions?"},
+     "text": "…future end-use applications emphasize the use of wood as a substitute for more carbon-intensive materials — for example in construction or through innovative bioeconomy solutions?"},
     {"id": "carbon_storage",
-     "text": "…is it that the forest-based sector actively enhances forest growth and increases carbon storage in forests to reduce overall environmental impacts (e.g., greenhouse gas emissions)?"},
+     "text": "…the forest-based sector actively enhances forest growth and increases carbon storage in forests to reduce overall environmental impacts (e.g., greenhouse gas emissions)?"},
     {"id": "biodiversity",
-     "text": "…is it for forestry activities to avoid negative impacts on biodiversity and to actively protect or restore forest habitats?"},
+     "text": "…forest management activities should avoid negative impacts on biodiversity and to actively protect or restore forest habitats?"},
     {"id": "local_sourcing",
-     "text": "…is it that forest industry and wood construction favor local sourcing and production to reduce transport-related environmental impacts?"},
+     "text": "…forest-based sectors and wood construction favor local sourcing and production to reduce transport-related environmental impacts?"},
     {"id": "employment_conditions",
-     "text": "…is it that the forest-based sector provides stable employment opportunities and promotes fair working conditions in the region and occupational groups?"},
+     "text": "…the forest-based sector provides stable employment opportunities and promotes fair working conditions in the region and occupational groups?"},
     {"id": "training_development",
-     "text": "…is it that the forest-based sector strengthens regional capacity by providing professional development, training, and career advancement opportunities for its employees, particularly in rural areas?"},
+     "text": "…the forest-based sector strengthens regional capacity by providing professional development, training, and career advancement opportunities for its employees, particularly in rural areas?"},
     {"id": "community_engagement",
-     "text": "…is it that the forest-based sector actively engages with local communities, assesses social and environmental impacts, and contributes to local well-being through transparent collaboration?"}
+     "text": "…the forest-based sector actively engages with local communities, assesses social and environmental impacts, and contributes to local well-being through transparent collaboration?"}
 ]
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
@@ -126,33 +177,33 @@ def make_sankey(values):
         "Woodlands (million acres)",  # 0
         "Timber harvesting in New England",                  # 1
         "Wildlands (million acres)",  # 2
-        "Lumber (thousand ft³)",      # 3
-        "Raw material for paper (thousand ft³)",  # 4
-        "Fuelwood (thousand ft³)",    # 5
-        "Import (Lumber)",            # 6
-        "Import (Paper)",             # 7
+        "Lumber",      # 3  (thousand ft³)
+        "Pulp",  # 4
+        "Fuelwood",    # 5
+        "Lumber import",            # 6
+        "Pulp import",             # 7
         "Conservation",                # 8
         "Construction multistory",      #9
         "Construction single family", # 10
         "Manufacturing",              # 11
         "Packaging",                  # 12
-        "Other",                      # 13
+        "Other uses",                      # 13
         "Residential repair and remodeling",         # 14
         "Nonresidential construction", # 15
-        "",          # 16 paper placeholder
+       # "",          # 16 paper placeholder
         "",             # 17 fuelwood placeholder
         "",             # 18 placeholder for wildlands
-        "Sawmill waste"             # 19
+        ""             # 19
         ]
 
 
     woodlands = values.get("woodlands") or 0
 
     sources = [
-        1, 1, 1, 6, 7, 3, 3, 3, 3, 3, 3, 3, 3, 4, 5, 3, 3
+        1, 1, 1, 6, 7, 3, 3, 3, 3, 3, 3, 3, 4, 5, 3, 3
     ]
     targets = [
-        3, 4, 5, 3, 4, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 3, 4
+        3, 4, 5, 3, 4, 9, 10, 11, 12, 13, 14, 15, 17, 18, 3, 4
     ]
 
     woodlands_volume = values.get("intensity_volume", 0)
@@ -170,7 +221,7 @@ def make_sankey(values):
         values.get("other_val", 0),
         values.get("other_construction_val", 0),
         values.get("non_res_construction_val", 0),
-        1,
+    #    1,
         1,
         1,
         values.get("recovery_timber", 0),
@@ -178,57 +229,61 @@ def make_sankey(values):
     ]
 
     node_colors = [
+        # --- SOURCES (metsät + tuonti) ---
         "#4CAF50",  # 0: Woodlands
-        "#81C784",  # 1: Intensity
-        "#8D6E63",  # 2: Wildlands
-        "#4CAF50",  # 3: Lumber (visible)
-        "#81C784",  # 4: Raw material for paper (visible)
-        "#C0CA33",  # 5: Fuelwood (visible)
-        "#BDBDBD",  # 6: Import Lumber
-        "#BDBDBD",  # 7: Import Paper
-        "#9E9E9E",  # 8: Conservation
-        "#42A5F5",  # 9: Construction multistory
-        "#64B5F6",  # 10: Construction single family
-        "#7E57C2",  # 11: Manufacturing
-        "#FFB300",  # 12: Packaging
-        "#BDBDBD",  # 13: Other
-        "#BDBDBD",  # 14: Other Construction
-        "#BDBDBD",  # 14: Other Construction
-        "rgba(0,0,0,0)",  # 15: Paper placeholder (fully transparent)
-        "rgba(0,0,0,0)",  # 16: fuelwood placeholder (fully transparent)
-        "rgba(0,0,0,0)",  # 15: Paper placeholder (fully transparent)
-        "#4CAF50",  # 3: Lumber (loop)
+        "#4CAF50",  # 1: Intensity (lähde)
+        "#4CAF50",  # 2: Wildlands
 
+        "#6D4C41",  # 3: Lumber (source view)
+        "#6D4C41",  # 4: Raw material for paper (source view)
+        "#6D4C41",  # 5: Fuelwood (source view)
+
+        "#4CAF50",  # 6: Import Lumber
+        "#4CAF50",  # 7: Import Paper
+
+        "#4CAF50",  # 8: Conservation (jos katsot lähteeksi)
+
+        # --- PRODUCTS (massaräätälöinnin tuotetyypit) ---
+        "#81C784",  # 9: Construction multistory (tuoteryhmä)
+        "#81C784",  # 10: Construction single family
+        "#81C784",  # 11: Manufacturing
+        "#81C784",  # 12: Packaging
+
+        # --- END USE / OTHER USES ---
+        "#81C784",  # 13: Other
+        "#81C784",  # 14: Other Construction
+        "#81C784",  # 15: Other Construction (duplikaatti node)
+
+        # --- PLACEHOLDERS ---
+        "rgba(0,0,0,0)",  # 16: Paper placeholder
+        "rgba(0,0,0,0)",  # 17: Fuelwood placeholder
+        "rgba(0,0,0,0)",  # 18: Paper placeholder
+
+        # --- LOOP NODE (sama väri kuin lumber) ---
+        "#4CAF50",  # 19: Lumber (loop)
     ]
 
-    link_colors = [
-        "#4CAF50",  # 1 → 3 (Intensity → Lumber)
-        "#81C784",  # 1 → 4 (Intensity → Paper)
-        "#C0CA33",  # 1 → 5 (Intensity → Fuelwood)
-        "#BDBDBD",  # 6 → 3 (Import Lumber)
-        "#BDBDBD",  # 7 → 4 (Import Paper)
-        "#42A5F5",  # 3 → 9 (Construction multistory)
-        "#64B5F6",  # 3 → 10 (Construction single family)
-        "#7E57C2",  # 3 → 11 (Manufacturing)
-        "#FFB300",  # 3 → 12 (Packaging)
-        "#BDBDBD",  # 3 → 13 (Other)
-        "#BDBDBD",  # 3 → 14 (Other Construction)
-        "#BDBDBD",  # 14: Other Construction
-        "rgba(0,0,0,0)",  # 4 → 15 (Paper placeholder) fully transparent
-        "rgba(0,0,0,0)",  #  (fuelwood placeholder) fully transparent
-        "rgba(0,0,0,0)",  # 4 → 15 (Paper placeholder) fully transparent
-        "#4CAF50",  # lumber loop)
+    link_colors = [color_from_diff(v, default) for v, default in zip(values_list, DEFAULTS_NUMERIC)]
 
-    ]
+    special_flow_index = len(link_colors) - 1  # viimeinen linkki, lumber loop
+    # customdata for every link
 
+    labels_for_links = []
+    for i in range(len(link_colors)):
+        if i == special_flow_index:
+            labels_for_links.append(
+                "This flow is constant and follows lumber harvesting volumes linearly."
+            )
+        else:
+            labels_for_links.append("")
 
     fig = go.Figure(data=[go.Sankey(
         node=dict(
-            pad=15, thickness=20,
+            pad=30, thickness=20,
             label=labels,
-            color=node_colors
+            color=node_colors,
         ),
-        link=dict(source=sources, target=targets, value=values_list, color=link_colors)
+        link=dict(source=sources, target=targets, value=values_list, color=link_colors, label=labels_for_links)
     )])
 
     fig.add_annotation(
@@ -240,11 +295,12 @@ def make_sankey(values):
         xanchor="left", yanchor="top"
     )
 
-    fig.update_layout(title_text="", font_size=10,
+    fig.update_layout(title_text="", font_size=15,
                       height=550,
-                      margin=dict(l=50, r=50, t=50, b=100)
+                      margin=dict(l=50, r=50, t=50, b=100),
                       )
 
+    # remove borders
     fig.update_traces(node=dict(
         line=dict(color="rgba(0,0,0,0)", width=0)
     ))
@@ -306,7 +362,7 @@ def make_stacked_bar(values):
         ))
 
     fig.update_layout(
-        title="Forest and Land Use Distribution (% of total area)",
+        title="Land Cover Distribution (% of total area)",
       #  xaxis_title="Year",
         yaxis=dict(range=[0, 100], title="Share of total land area (%)"),
         template="plotly_white",
@@ -339,11 +395,23 @@ def make_stacked_bar(values):
 app.layout = html.Div([
 
     html.Div([
-        html.H3("Vision for forestry in New England survey", style={"marginBottom": "10px"}),
+        html.H3("Vision for forest governance in New England survey", style={"marginBottom": "10px"}),
         html.H4("About this survey"),
         html.P("This survey asks for your views on what the future of forests and the forest industry in New England"
                " should look like in 2060. Your responses will be treated anonymously and will only be analyzed"
                " in relation to the background information you provide in this survey."),
+        html.P(
+            "Answer all the questions in a way that reflects your preferred vision for the year 2060.",
+            style={
+                "fontSize": "16px",
+                "lineHeight": "1.4",
+                "fontWeight": "bold",
+                "color": "#d9534f",
+                "backgroundColor": "#fff3f0",
+                "padding": "5px",
+                "borderRadius": "4px"
+            }
+        ),
         html.P("The order in which you answer the survey does not matter. However, your adjustments will affect other "
                "variables in different graphs. For example, increasing or decreasing the area of protected or "
                "unprotected forest land in Graph 1 will impact the amount of timber harvesting in New England "
@@ -483,10 +551,9 @@ app.layout = html.Div([
         html.Div([
             html.H4("2. Land Cover", style={"marginBottom": "20px"}),
             html.P("Adjust the land area parameters individually based on your desired future scenario in 2060."),
-            html.P("— note that the shares must sum to 100% for the both graphs to update"),
             html.P("Click 'Set everything to default' to restore initial values."),
             html.P(
-                "Note: Your selections here will influence the production volumes displayed in the second graph (Sankey chart).",
+                "Note: Your selections here will influence the production volumes displayed in the second graph (material flow chart). ",
                 style={
                     "fontSize": "16px",
                     "lineHeight": "1.4",
@@ -496,7 +563,19 @@ app.layout = html.Div([
                     "padding": "5px",
                     "borderRadius": "4px"
                 }
-            )
+            ),
+            html.P("Note: For the both graphs to update the land cover shares must sum to 100%.",
+                   style={
+                       "fontSize": "16px",
+                       "lineHeight": "1.4",
+                       "fontWeight": "bold",
+                       "color": "#d9534f",
+                       "backgroundColor": "#fff3f0",
+                       "padding": "5px",
+                       "borderRadius": "4px"
+                   }
+                   ),
+
         ], style={
             "width": "100%",
             "padding": "20px",
@@ -723,11 +802,32 @@ app.layout = html.Div([
                "change from the 2020 situation to your preferred levels in 2060"),
         html.P("3.1 Material source: Adjust the slider to reflect your average harvesting intensity in New England"
                " forests. Additionally, set lumber and pulpwood imports to your desired levels."),
-        html.P("3.2 Product type: Adjust the percentages of harvests allocated to lumber, pulpwood, and fuelwood. "
-               "Note that these must sum to 100%."),
+        html.P("3.2 Product type: Adjust the percentages of harvests allocated to lumber, pulpwood, and fuelwood. "),
         html.P("3.3 Application / End use: Use the input fields below to define how the end-use distribution should"
-               " develop until 2060. Note that demand must match supply with an accuracy of 1,000–2,000 mcf."),
+               " develop until 2060."),
         html.P("Click 'Set everything to default' to restore initial values."),
+        html.P("Note: Product type percentages must sum up to 100%.",
+               style={
+                   "fontSize": "16px",
+                   "lineHeight": "1.4",
+                   "fontWeight": "bold",
+                   "color": "#d9534f",
+                   "backgroundColor": "#fff3f0",
+                   "padding": "5px",
+                   "borderRadius": "4px"
+               }
+               ),
+        html.P("Note: demand must match supply with an accuracy of 1,000–2,000 mcf.",
+               style={
+                   "fontSize": "16px",
+                   "lineHeight": "1.4",
+                   "fontWeight": "bold",
+                   "color": "#d9534f",
+                   "backgroundColor": "#fff3f0",
+                   "padding": "5px",
+                   "borderRadius": "4px"
+               }
+               )
     ], className='col-3', style={
         "width": "100%",
         "padding": "20px",
@@ -947,6 +1047,8 @@ app.layout = html.Div([
                 html.Div([
                     html.Label("3.3. Application / End use", style={'fontWeight': 'bold', "marginBottom": "10px"}),
                     html.Div(id="lumber_supply_status", style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
+                    html.Div(id="lumber_demand_status",
+                             style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
 
                     # Construction (multistory)
                     html.Label([
@@ -967,19 +1069,27 @@ app.layout = html.Div([
                                   style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    dbc.Input(
-                        id="construction_multistory_val",
-                        type="number",
-                        value=int(DEFAULTS["construction_multistory_val"]),
-                        min=0,
-                        max=600000,
-                        step=1000,
+                    html.Div([
+                        dbc.Input(
+                            id="construction_multistory_val",
+                            type="number",
+                            value=int(DEFAULTS["construction_multistory_val"]),
+                            min=0,
+                            max=600000,
+                            step=1000,
+                            style={
+                                "width": "160px",
+                                "margin": "0 10px 0 0",  # pieni väli Spanin ja Inputin väliin
+                                "textAlign": "right",
+                            },
+                        ),
+                        html.Span(id="construction_multistory_change", style={"fontWeight": "bold"})
+                    ],
                         style={
-                            "width": "160px",
-                            "margin": "0 0 20px 0",
-                            "textAlign": "right",
-                        },
-                    ),
+                            "display": "flex",
+                            "alignItems": "center",  # keskittää vaakasuoraan
+                            "marginBottom": "20px"
+                        }),
 
                     # daq.NumericInput(
                     #     id="construction_multistory_val",
@@ -997,19 +1107,28 @@ app.layout = html.Div([
                                   style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    dbc.Input(
-                        id="construction_single_val",
-                        type="number",
-                        min=0,
-                        max=600000,
-                        step=1000,
-                        value=int(DEFAULTS["construction_single_val"]),
+                    html.Div([
+                        dbc.Input(
+                            id="construction_single_val",
+                            type="number",
+                            value=int(DEFAULTS["construction_single_val"]),
+                            min=0,
+                            max=600000,
+                            step=1000,
+                            style={
+                                "width": "160px",
+                                "margin": "0 10px 0 0",  # pieni väli Spanin ja Inputin väliin
+                                "textAlign": "right",
+                            },
+                        ),
+                        html.Span(id="construction_single_change", style={"fontWeight": "bold"})
+                    ],
                         style={
-                            "width": "160px",
-                            "marginBottom": "20px",
-                            "textAlign": "right"
-                        }
-                    ),
+                            "display": "flex",
+                            "alignItems": "center",  # keskittää vaakasuoraan
+                            "marginBottom": "20px"
+                        }),
+
 
                     # daq.NumericInput(
                     #     id="construction_single_val",
@@ -1040,19 +1159,19 @@ app.layout = html.Div([
                                   style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    dbc.Input(
-                        id="manufacturing_val",
-                        type="number",
-                        min=0,
-                        max=600000,
-                        step=1000,
-                        value=int(DEFAULTS["manufacturing_val"]),
-                        style={
-                            "width": "160px",
-                            "marginBottom": "20px",
-                            "textAlign": "right"
-                        }
-                    ),
+                    # Manufacturing
+                    html.Div([
+                        dbc.Input(
+                            id="manufacturing_val",
+                            type="number",
+                            value=int(DEFAULTS["manufacturing_val"]),
+                            min=0,
+                            max=600000,
+                            step=1000,
+                            style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
+                        ),
+                        html.Span(id="manufacturing_change", style={"fontWeight": "bold"})
+                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
 
 
                     # daq.NumericInput(
@@ -1084,19 +1203,20 @@ app.layout = html.Div([
                                   style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    dbc.Input(
-                        id="packaging_val",
-                        type="number",
-                        min=0,
-                        max=600000,
-                        step=1000,
-                        value=int(DEFAULTS["packaging_val"]),
-                        style={
-                            "width": "160px",
-                            "marginBottom": "20px",
-                            "textAlign": "right"
-                        }
-                    ),
+                    # Packaging
+                    html.Div([
+                        dbc.Input(
+                            id="packaging_val",
+                            type="number",
+                            value=int(DEFAULTS["packaging_val"]),
+                            min=0,
+                            max=600000,
+                            step=1000,
+                            style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
+                        ),
+                        html.Span(id="packaging_change", style={"fontWeight": "bold"})
+                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
+
                     # daq.NumericInput(
                     #     id="packaging_val",
                     #     value=DEFAULTS["packaging_val"],
@@ -1127,19 +1247,19 @@ app.layout = html.Div([
                                   style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    dbc.Input(
-                        id="other_val",
-                        type="number",
-                        min=0,
-                        max=600000,
-                        step=1000,
-                        value=int(DEFAULTS["other_val"]),
-                        style={
-                            "width": "160px",
-                            "marginBottom": "20px",
-                            "textAlign": "right"
-                        }
-                    ),
+                    # Other
+                    html.Div([
+                        dbc.Input(
+                            id="other_val",
+                            type="number",
+                            value=int(DEFAULTS["other_val"]),
+                            min=0,
+                            max=600000,
+                            step=1000,
+                            style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
+                        ),
+                        html.Span(id="other_change", style={"fontWeight": "bold"})
+                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
 
                     # daq.NumericInput(
                     #     id="other_val",
@@ -1169,19 +1289,21 @@ app.layout = html.Div([
                                   style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    dbc.Input(
-                        id="non_res_construction_val",
-                        type="number",
-                        min=0,
-                        max=600000,
-                        step=1000,
-                        value=int(DEFAULTS["non_res_construction_val"]),
-                        style={
-                            "width": "160px",
-                            "marginBottom": "20px",
-                            "textAlign": "right"
-                        }
-                    ),
+                    html.Div([
+                        dbc.Input(
+                            id="non_res_construction_val",
+                            type="number",
+                            value=int(DEFAULTS["non_res_construction_val"]),
+                            min=0,
+                            max=600000,
+                            step=1000,
+                            style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
+                        ),
+                        html.Span(id="non_res_construction_change", style={"fontWeight": "bold"})
+                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
+
+
+
 
                     # daq.NumericInput(
                     #     id="non_res_construction_val",
@@ -1212,19 +1334,19 @@ app.layout = html.Div([
                                   style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    dbc.Input(
-                        id="other_construction_val",
-                        type="number",
-                        min=0,
-                        max=600000,
-                        step=1000,
-                        value=int(DEFAULTS["other_construction_val"]),
-                        style={
-                            "width": "160px",
-                            "marginBottom": "20px",
-                            "textAlign": "right"
-                        }
-                    ),
+                    # nonres Construction
+                    html.Div([
+                        dbc.Input(
+                            id="other_construction_val",
+                            type="number",
+                            value=int(DEFAULTS["other_construction_val"]),
+                            min=0,
+                            max=600000,
+                            step=1000,
+                            style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
+                        ),
+                        html.Span(id="other_construction_change", style={"fontWeight": "bold"})
+                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
 
                     # daq.NumericInput(
                     #     id="other_construction_val",
@@ -1294,7 +1416,7 @@ app.layout = html.Div([
 # likert scale GRI questions
     html.Div([
         # Otsikko koko gridin levyinen
-        html.H3("In your vision, how important...", style={"gridColumn": "1 / -1", "marginBottom": "20px"}),
+        html.H3("In your vision, how important is it that...", style={"gridColumn": "1 / -1", "marginBottom": "20px"}),
         html.H5("(1 = not at all important, 2 = slightly important, 3 = moderately important, 4 = imporant, 5 = very important)"),
         # Kysymykset gridissä
         html.Div([
@@ -1393,12 +1515,7 @@ def reset_defaults(n_clicks):
 
 
 @app.callback(
-        Output("logging_intensity", "value"),
-        Output("import_lumber", "value"),
-        Output("import_paper", "value"),
-        Output("lumbershare", "value"),
-        Output("papershare", "value"),
-        Output("fuelshare", "value"),
+    [
         Output("construction_multistory_val", "value"),
         Output("construction_single_val", "value"),
         Output("manufacturing_val", "value"),
@@ -1406,33 +1523,38 @@ def reset_defaults(n_clicks):
         Output("other_val", "value"),
         Output("other_construction_val", "value"),
         Output("non_res_construction_val", "value"),
-        Input("reset-btn-2", "n_clicks"),
+        Output("lumbershare", "value"),
+        Output("papershare", "value"),
+        Output("fuelshare", "value"),
+        Output("logging_intensity", "value"),
+        Output("import_lumber", "value"),
+        Output("import_paper", "value"),
+        Output("recovery_timber", "value"),
+    ],
+    [Input("reset-btn-2", "n_clicks")],
+    prevent_initial_call=True
 )
-def reset_defaults(n_clicks):
-    if not n_clicks:
-        raise dash.exceptions.PreventUpdate
-
-    # Kaikki muut paitsi excluded
-    values = []
-
-    # Lisätään data-kenttien arvot oikeassa järjestyksessä
-    values += [
-        DEFAULTS["logging_intensity"],
-        DEFAULTS["import_lumber"],
-        DEFAULTS["import_paper"],
-        DEFAULTS["lumbershare"],
-        DEFAULTS["papershare"],
-        DEFAULTS["fuelshare"],
-        int(DEFAULTS["construction_multistory_val"]),
-        int(DEFAULTS["construction_single_val"]),
-        int(DEFAULTS["manufacturing_val"]),
-        int(DEFAULTS["packaging_val"]),
-        int(DEFAULTS["other_val"]),
-        int(DEFAULTS["other_construction_val"]),
-        int(DEFAULTS["non_res_construction_val"])
-    ]
-
-    return values
+def reset_input_fields(n_clicks):
+    # This callback runs only when the reset button is clicked
+    if n_clicks:
+        return (
+            int(DEFAULTS["construction_multistory_val"]),
+            int(DEFAULTS["construction_single_val"]),
+            int(DEFAULTS["manufacturing_val"]),
+            int(DEFAULTS["packaging_val"]),
+            int(DEFAULTS["other_val"]),
+            int(DEFAULTS["other_construction_val"]),
+            int(DEFAULTS["non_res_construction_val"]),
+            int(DEFAULTS["lumbershare"]),
+            int(DEFAULTS["papershare"]),
+            int(DEFAULTS["fuelshare"]),
+            int(DEFAULTS["logging_intensity"]),
+            int(DEFAULTS["import_lumber"]),
+            int(DEFAULTS["import_paper"]),
+            int(DEFAULTS["recovery_timber"]),
+        )
+    # Just in case, return dash.no_update
+    return dash.no_update
 
 '''
 "woodlands_area", "wildlands_area", "from_lumber_to_pulp", "lumber", "paper", "fuelwood",
@@ -1503,8 +1625,9 @@ INPUT_ORDER = [
     "manufacturing_val",
     "packaging_val",
     "other_val",
+    "non_res_construction_val",
     "other_construction_val",
-    "non_res_construction_val"
+
 ]
 
 @app.callback(
@@ -1514,6 +1637,8 @@ INPUT_ORDER = [
         #Output("forest-bar", "figure"),
         Output("capacity-status", "children"),
         Output("capacity-status", "style"),
+        Output("lumber_demand_status", "children"),
+        Output("lumber_demand_status", "style"),
         Output("lumber_supply_status", "children"),
         Output("lumber_supply_status", "style"),
         Output("total_logging", "children"),
@@ -1524,6 +1649,15 @@ INPUT_ORDER = [
         Output("other_val", "max"),
         Output("other_construction_val", "max"),
         Output("non_res_construction_val", "max"),
+        Output("construction_multistory_change", "children"),
+        Output("construction_single_change", "children"),
+        Output("manufacturing_change", "children"),
+        Output("packaging_change", "children"),
+        Output("other_change", "children"),
+        Output("non_res_construction_change", "children"),
+        Output("other_construction_change", "children")
+
+        #     Output("construction_multistory", "children")
     ],
     [
         Input("logging_intensity", "value"),
@@ -1538,7 +1672,7 @@ INPUT_ORDER = [
         Input("import_lumber", "value"),
         Input("import_paper", "value"),
         Input("recovery_timber", "value"),
-   #     Input("construction_multistory", "value"),
+    #    Input("construction_multistory", "value"),
    #     Input("construction_single", "value"),
    #     Input("manufacturing", "value"),
    #     Input("packaging", "value"),
@@ -1556,13 +1690,46 @@ INPUT_ORDER = [
         Input("manufacturing_val", "value"),
         Input("packaging_val", "value"),
         Input("other_val", "value"),
+        Input("non_res_construction_val", "value"),
         Input("other_construction_val", "value"),
-        Input("non_res_construction_val", "value")
+        Input("reset-btn-1", "n_clicks"),
+        Input("reset-btn-2", "n_clicks")
     ],
 )
 def update_all_charts(*vals):
-    data = dict(zip(INPUT_ORDER, vals))
+    ctx = dash.callback_context
+
+    # Detect if reset was pressed
+    triggered_id = ctx.triggered[0]["prop_id"].split(".")[0]
+
+
+    vals_int = [float(v) if v is not None else 0 for v in vals]
+
+    data = dict(zip(INPUT_ORDER, vals_int))
+
+    keys_btn1 = ["protWoodlands", "unprotectedForest", "developed", "farmland", "wildlands"]
+    keys_btn2 = [
+        "logging_intensity",
+        "lumbershare",
+        "papershare",
+        "fuelshare",
+        "import_lumber",
+        "import_paper",
+        "recovery_timber",
+        "construction_multistory_val",
+        "construction_single_val",
+        "manufacturing_val",
+        "packaging_val",
+        "other_val",
+        "other_construction_val",
+        "non_res_construction_val"
+    ]
+
+
+
     total_shares = data["lumbershare"] + data["papershare"] + data["fuelshare"]
+
+
 
     total_enduse = round(
         data["construction_multistory_val"] +
@@ -1576,6 +1743,7 @@ def update_all_charts(*vals):
     # --- Alustetaan figuurit ---
     bar_fig = dash.no_update
     sankey_fig = dash.no_update  # aluksi None, luodaan vain validien osien perusteella
+
 
     # --- 1️⃣ Capacity (lumber/paper/fuel) ---
     if abs(total_shares - 100) > 0.01:
@@ -1606,7 +1774,9 @@ def update_all_charts(*vals):
 
     # --- 2️⃣ End-use (loppukäyttö) ---
     if abs(total_enduse - lumber_supply) > 1000:
-        lumber_supply_text = f"Demand: {round(total_enduse, -3):,.0f} mcf ❌ Must be equal with supply: {round(lumber_supply, -3):,.0f} mcf"
+        lumber_demand_text = f"Demand {round(total_enduse, -3):,.0f}"
+        lumber_demand_style = {"color": "red"}
+        lumber_supply_text = f"Supply: {round(lumber_supply, -3):,.0f} mcf"
         lumber_supply_style = {"color": "red"}
     else:
 
@@ -1617,6 +1787,8 @@ def update_all_charts(*vals):
         data["other_val"] = (data["other_val"])
         data["other_construction_val"] = (data["other_construction_val"])
         data["non_res_construction_val"] = (data["non_res_construction_val"])
+        lumber_demand_text = f"Demand {round(total_enduse, -3):,.0f}"
+        lumber_demand_style = {"color": "red"}
         lumber_supply_text = f"{round(total_enduse, -3):,.0f} mcf ✅ Supply and demand are in balance"
         lumber_supply_style = {"color": "green"}
 
@@ -1626,12 +1798,100 @@ def update_all_charts(*vals):
     else:
         sankey_fig = dash.no_update
 
+    if triggered_id == "reset-btn-1":
+        for key in keys_btn1:
+            data[key] = DEFAULTS[key]
+        data["construction_multistory_val"] = (DEFAULTS["construction_multistory_val"])
+        # Recalculate dependent values
+        total_logging = data["logging_intensity"] * ((data["unprotectedForest"] + data["protWoodlands"]) / 100 * 40000)
+        print(total_logging)
+        data["lumber"] = total_logging * (data["lumbershare"] / 100)
+        data["from_lumber_to_pulp"] = 0.333 * data["lumber"]
+        data["paper"] = total_logging * (data["papershare"] / 100)
+        data["fuelwood"] = total_logging * (data["fuelshare"] / 100)
+        sankey_fig = make_sankey(data)
+
+    elif triggered_id == "reset-btn-2":
+        for key in keys_btn2:
+            data[key] = DEFAULTS[key]
+        # Recalculate dependent values if needed
+        total_logging = data["logging_intensity"] * ((data["unprotectedForest"] + data["protWoodlands"]) / 100 * 40000)
+        data["lumber"] = total_logging * (data["lumbershare"] / 100)
+        data["from_lumber_to_pulp"] = 0.333 * data["lumber"]
+        data["paper"] = total_logging * (data["papershare"] / 100)
+        data["fuelwood"] = total_logging * (data["fuelshare"] / 100)
+        sankey_fig = make_sankey(data)
+
+    # 1. Construction multistory
+    inc_construction_multistory_pct = ((data["construction_multistory_val"] - int(
+        DEFAULTS["construction_multistory_val"])) / int(DEFAULTS["construction_multistory_val"])) * 100
+    construction_multistory_str = f"Demand change in % from 2020: {inc_construction_multistory_pct:+.1f}%"
+    construction_multistory_color = (
+        "green" if inc_construction_multistory_pct > 0.1
+        else "red" if inc_construction_multistory_pct < 0
+        else "grey"
+    )
+    # 2. Construction single
+    inc_construction_single_pct = ((data["construction_single_val"] - int(DEFAULTS["construction_single_val"])) / int(
+        DEFAULTS["construction_single_val"])) * 100
+    construction_single_str = f"Demand change in % from 2020: {inc_construction_single_pct:+.1f}%"
+    construction_single_color = (
+        "green" if inc_construction_single_pct > 0.1
+        else "red" if inc_construction_single_pct < 0
+        else "grey"
+    )
+    # 3. Manufacturing
+    inc_manufacturing_pct = ((data["manufacturing_val"] - int(DEFAULTS["manufacturing_val"])) / int(
+        DEFAULTS["manufacturing_val"])) * 100
+    manufacturing_str = f"Demand change in % from 2020: {inc_manufacturing_pct:+.1f}%"
+    manufacturing_color = (
+        "green" if inc_manufacturing_pct > 0.1
+        else "red" if inc_manufacturing_pct < 0
+        else "grey"
+    )
+    # 4. Packaging
+    inc_packaging_pct = ((data["packaging_val"] - int(DEFAULTS["packaging_val"])) / int(
+        DEFAULTS["packaging_val"])) * 100
+    packaging_str = f"Demand change in % from 2020: {inc_packaging_pct:+.1f}%"
+    packaging_color = (
+        "green" if inc_packaging_pct > 0.1
+        else "red" if inc_packaging_pct < 0
+        else "grey"
+    )
+    # 5. Other
+    inc_other_pct = ((data["other_val"] - int(DEFAULTS["other_val"])) / int(DEFAULTS["other_val"])) * 100
+    other_str = f"Demand change in % from 2020: {inc_other_pct:+.1f}%"
+    other_color = (
+        "green" if inc_other_pct > 0.1
+        else "red" if inc_other_pct < 0
+        else "grey"
+    )
+    # 6. Non res. Construction
+    inc_non_res_construction_pct = ((data["non_res_construction_val"] - int(DEFAULTS["non_res_construction_val"])) / int(
+        DEFAULTS["non_res_construction_val"])) * 100
+    non_res_construction_str = f"Demand change in % from 2020: {inc_non_res_construction_pct:+.1f}%"
+    non_res_construction_color = (
+        "green" if inc_non_res_construction_pct > 0.1
+        else "red" if inc_non_res_construction_pct < 0
+        else "grey"
+    )
+    # 7. Other Construction
+    inc_other_construction_pct = ((data["other_construction_val"] - int(DEFAULTS["other_construction_val"])) / int(
+        DEFAULTS["other_construction_val"])) * 100
+    other_construction_str = f"Demand change in % from 2020: {inc_other_construction_pct:+.1f}%"
+    other_construction_color = (
+        "green" if inc_other_construction_pct > 0.1
+        else "red" if inc_other_construction_pct < 0
+        else "grey"
+    )
     return (
         data,
         sankey_fig,
         # bar_fig,
         status_text,
         status_style,
+        lumber_demand_text,
+        lumber_demand_style,
         lumber_supply_text,
         lumber_supply_style,
         total_logging_text,
@@ -1641,9 +1901,14 @@ def update_all_charts(*vals):
         lumber_supply,
         lumber_supply,
         lumber_supply,
-        lumber_supply
-
-
+        lumber_supply,
+        html.Span(construction_multistory_str, style={"color": construction_multistory_color, "fontWeight": "bold"}),
+        html.Span(construction_single_str, style={"color": construction_single_color, "fontWeight": "bold"}),
+        html.Span(manufacturing_str, style={"color": manufacturing_color, "fontWeight": "bold"}),
+        html.Span(packaging_str, style={"color": packaging_color, "fontWeight": "bold"}),
+        html.Span(other_str, style={"color": other_color, "fontWeight": "bold"}),
+        html.Span(non_res_construction_str, style={"color": non_res_construction_color, "fontWeight": "bold"}),
+        html.Span(other_construction_str, style={"color": other_construction_color, "fontWeight": "bold"}),
 
     )
 
