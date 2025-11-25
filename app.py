@@ -854,16 +854,17 @@ app.layout = html.Div([
 
       #  html.Hr(style={"borderTop": "2px solid #ccc", "margin": "15px 0"}),
 
-        # Three-column input grid
+        # four-column input grid
     html.Div([
         # --- Column 1: Logging + Imports ---
         html.Div([
-            html.Div([
-                html.Label("3.1. Timber sources in New England ", style={"fontWeight": "bold", "marginBottom": "10px"}),
+            html.H4("3.1. Timber sources in New England ", style={"fontWeight": "bold", "marginBottom": "10px"}),
 
-                html.Label("Total roundwood market size = ", style={"fontWeight": "bold"}),
+            html.Div([
+
+             #   html.Label("Total roundwood market size = ", style={"fontWeight": "bold"}),
                 html.Label([
-                    html.Span("Timber harvesting intensity (mcf / acre) ", style={"fontWeight": "normal"}),
+                    html.Span("Timber harvesting intensity (mcf / acre) ", style={"fontWeight": "bold"}),
                     html.Span(f"(in 2020: {DEFAULTS['logging_intensity']} mcf/acre)",
                                 style={"fontWeight": "normal"})
                     ]),
@@ -927,8 +928,20 @@ app.layout = html.Div([
 
                 html.Div(id="timber_supply", className="bottom-line"),
 
-
-            ]),
+            ], style={
+                "flex": "1",
+                "display": "flex",
+                "flexDirection": "column",
+                "justifyContent": "flex-start",  # <--- FIX
+                "width": "100%",
+                "minWidth": "0",
+                "border": "1px solid #ddd",
+                "borderRadius": "12px",
+                "padding": "12px",
+                "marginBottom": "20px",
+                "backgroundColor": "#fafafa",
+                "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
+            }),
         ], className='col-3', style={
             "flex": "1",
             "display": "flex",
@@ -941,14 +954,15 @@ app.layout = html.Div([
 
             # --- Column 2: Products ---
             html.Div([
+                html.H4("3.2. Timber supply by assortments",
+                           style={'fontWeight': 'bold', "marginBottom": "10px"}),
+
                 html.Div([
-
-
-                    html.Label("3.2. Roundwood supply by assortments of all roundwood supply", style={'fontWeight': 'bold', "marginBottom": "10px"}),
 
                     # Lumber
                #     html.Label("Lumber total", style={"fontWeight": "bold"}),
-                    html.Div(id="lumber_total"),
+                    html.Div(id="capacity-status", children="100% ✅ Balanced", className="top-item",
+                             style={"color": "green", "marginTop": "10px", "marginBottom": "10px"}),
 
                     # Lumber share
                     html.Label([
@@ -956,19 +970,24 @@ app.layout = html.Div([
                         html.Span(f"(in 2020: {DEFAULTS['lumbershare']}%)", style={"fontWeight": "normal"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    daq.NumericInput(
-                        id="lumbershare",
-                        value=40,
-                        min=0,
-                        max=100,
-                        size=70,
-                        style={
-                            "display": "block",
-                            "width": "70px",
-                            "margin": "0 0 20px 0",
-                            "textAlign": "right"
-                        }
-                    ),
+                    dbc.InputGroup([
+                          dbc.Input(
+                                id="lumbershare",
+                                type="number",
+                                min=0,
+                                max=100,
+                                step=1,
+                                value=int(40),
+                                size="sm",
+                                style={
+                                    "textAlign": "right",
+                                    "width": "70px",
+                                    "flex": "0 0 70px",
+                                }
+                            ),
+                            dbc.InputGroupText("%")
+                        ],
+                        style={"marginBottom": "20px"}),
 
                     dbc.InputGroup(
                         [
@@ -994,7 +1013,7 @@ app.layout = html.Div([
                         }
                     ),
 
-                    html.Div(id="lumber_supply_text", className="bottom-line", style={"marginTop": "20px", "marginBottom": "20px"}
+                    html.Div(id="lumber_supply_text", className="line-item", style={"marginTop": "20px", "marginBottom": "20px"}
 ),
 
                     dcc.Store(id="lumber", data=DEFAULTS["lumber"]),
@@ -1010,21 +1029,27 @@ app.layout = html.Div([
                         html.Span(f"(in 2020: {DEFAULTS['papershare']}%)", style={"fontWeight": "normal"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    daq.NumericInput(
-                        id="papershare",
-                        value=40,
-                        min=0,
-                        max=100,
-                        size=70,
-                        style={
-                            "display": "block",
-                            "width": "70px",
-                            "margin": "0",
-                            "marginBottom": "20px",
-                            "textAlign": "right"
-                        }
-                    ),
-                    html.Div(id="pulp_supply_text", className="bottom-line",
+                    dbc.InputGroup([
+                          dbc.Input(
+                                id="papershare",
+                                type="number",
+                                min=0,
+                                max=100,
+                                step=1,
+                                value=int(40),
+                                size="sm",
+                                style={
+                                    "textAlign": "right",
+                                    "width": "70px",
+                                    "flex": "0 0 70px",
+                                }
+                            ),
+                            dbc.InputGroupText("%")
+                        ],
+                        style={"marginBottom": "20px"}),
+
+
+                    html.Div(id="pulp_supply_text", className="line-item",
                              style={"marginTop": "20px", "marginBottom": "20px"}),
 
 
@@ -1039,29 +1064,35 @@ app.layout = html.Div([
                         html.Span(f"(in 2020: {DEFAULTS['fuelshare']}%)", style={"fontWeight": "normal"})
                     ], style={"display": "block", "marginBottom": "5px"}),
 
-                    daq.NumericInput(
-                        id="fuelshare",
-                        value=20,
-                        min=0,
-                        max=100,
-                        size=70,
-                        style={
-                            "display": "block",
-                            "width": "70px",
-                            "margin": "0",
-                            "marginBottom": "10px",
-                            "textAlign": "right"
-                        }
-                    ),
+                    dbc.InputGroup([
+                          dbc.Input(
+                                id="fuelshare",
+                                type="number",
+                                min=0,
+                                max=100,
+                                step=1,
+                                value=int(20),
+                                size="sm",
+                                style={
+                                    "textAlign": "right",
+                                    "width": "70px",
+                                    "flex": "0 0 70px",
+                                }
+                            ),
+                            dbc.InputGroupText("%")
+                        ],
+                        style={"marginBottom": "20px"}),
 
-                    html.Div(id="fuel_supply_text", className="bottom-line",
+                    html.Div(id="fuel_supply_text", className="line-item",
                              style={"marginTop": "20px", "marginBottom": "20px"}),
 
-                    html.Div(id="capacity-status", children="100% ✅ Balanced",
-                             style={"color": "green", "marginBottom": "10px"}),
+                    # Share status box
+
 
                     html.Div(id="share-warning", style={"fontWeight": "bold", "marginTop": "10px"})
-                ]),
+                ], id="share_style_box",
+
+            ),
 
             ], className='col-3', style={
                 "flex": "1",
@@ -1070,19 +1101,14 @@ app.layout = html.Div([
                 "justifyContent": "space-between",
                 "width": "100%",
                 "minWidth": "0",
-                "border": "1px solid #ddd",
-                "borderRadius": "12px",
-                "padding": "12px",
-                "marginBottom": "20px",
-                "backgroundColor": "#fafafa",
-                "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
+
 
             }),
 
             # --- Column 3: End uses ---
             html.Div([
+                html.H4("3.3. Lumber demand by enduse", style={'fontWeight': 'bold', "marginBottom": "10px"}),
                 html.Div([
-                    html.Label("3.3. Lumber demand by enduse", style={'fontWeight': 'bold', "marginBottom": "10px"}),
                     # Construction (multistory)
                     html.Label([
                         html.Span("Construction (multistory) ", style={"fontWeight": "bold"}),
@@ -1116,7 +1142,7 @@ app.layout = html.Div([
                                 "textAlign": "right",
                             },
                         ),
-                        html.Span(id="construction_multistory_change", style={"fontWeight": "bold"})
+                        html.Span(id="construction_multistory_change", style={"fontWeight": "normal"})
                     ],
                         style={
                             "display": "flex",
@@ -1154,7 +1180,7 @@ app.layout = html.Div([
                                 "textAlign": "right",
                             },
                         ),
-                        html.Span(id="construction_single_change", style={"fontWeight": "bold"})
+                        html.Span(id="construction_single_change", style={"fontWeight": "normal"})
                     ],
                         style={
                             "display": "flex",
@@ -1203,7 +1229,7 @@ app.layout = html.Div([
                             step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
-                        html.Span(id="manufacturing_change", style={"fontWeight": "bold"})
+                        html.Span(id="manufacturing_change", style={"fontWeight": "normal"})
                     ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
 
 
@@ -1247,7 +1273,7 @@ app.layout = html.Div([
                             step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
-                        html.Span(id="packaging_change", style={"fontWeight": "bold"})
+                        html.Span(id="packaging_change", style={"fontWeight": "normal"})
                     ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
 
                     # daq.NumericInput(
@@ -1291,7 +1317,7 @@ app.layout = html.Div([
                             step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
-                        html.Span(id="other_change", style={"fontWeight": "bold"})
+                        html.Span(id="other_change", style={"fontWeight": "normal"})
                     ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
 
                     # daq.NumericInput(
@@ -1332,7 +1358,7 @@ app.layout = html.Div([
                             step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
-                        html.Span(id="non_res_construction_change", style={"fontWeight": "bold"})
+                        html.Span(id="non_res_construction_change", style={"fontWeight": "normal"})
                     ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
 
 
@@ -1378,7 +1404,7 @@ app.layout = html.Div([
                             step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
-                        html.Span(id="other_construction_change", style={"fontWeight": "bold"})
+                        html.Span(id="other_construction_change", style={"fontWeight": "normal"})
                     ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
 
                     # daq.NumericInput(
@@ -1402,7 +1428,20 @@ app.layout = html.Div([
                     dcc.Store(id="non_res_construction", data=DEFAULTS["non_res_construction"]),
 
 
-                ])
+                ], style={
+                    "flex": "1",
+                    "display": "flex",
+                    "flexDirection": "column",
+                    "justifyContent": "flex-start",  # <--- FIX
+                    "width": "100%",
+                    "minWidth": "0",
+                    "border": "1px solid #ddd",
+                    "borderRadius": "12px",
+                    "padding": "12px",
+                    "marginBottom": "20px",
+                    "backgroundColor": "#fafafa",
+                    "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
+                })
             ], className='col-3', style={
                 "flex": "1",
                 "display": "flex",
@@ -1416,20 +1455,41 @@ app.layout = html.Div([
 # Column 4
 
         html.Div([
-            html.Div(
-                html.Label("3.4. Lumber supply-demand balance", style={"fontWeight": "bold"})
+            html.H4("3.4. Lumber supply-demand balance", style={"fontWeight": "bold"}),
+
+
+                html.Div([
+
+                html.Div(id="lumber_supply_text2", style={"marginTop": "20px", "marginBottom": "10px"}),
+                html.Div(id="lumber_demand_status", style={"marginTop": "20px", "marginBottom": "10px"}),
+          #      html.Div(id="lumber_demand_status",
+           #              style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
+             #   html.Div(id="lumber_supply_status_text"),
+                html.Div(id="lumber_supply_status",
+                         style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
+            ], id="sd_style_box"),
+
+            html.Div([
+                html.Button("Set material flow variables to default", id="reset-btn-2", n_clicks=0,
+                            style={
+                                "marginTop": "20px",
+                                "padding": "10px 20px",
+                                "fontWeight": "bold",
+                                "backgroundColor": "#e0e0e0",
+                                "borderRadius": "6px",
+                                "cursor": "pointer"
+                            }),
+            ], style={
+                "flex": "1",
+                "display": "flex",
+                "flexDirection": "column",
+                "marginLeft": "20px",
+                "alignItems": "center"}
             ),
-            html.Div(id="lumber_supply_text2", style={"marginTop": "20px", "marginBottom": "10px"}),
-            html.Div(id="lumber_demand_status", style={"marginTop": "20px", "marginBottom": "10px"}),
-      #      html.Div(id="lumber_demand_status",
-       #              style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
-         #   html.Div(id="lumber_supply_status_text"),
-            html.Div(id="lumber_supply_status",
-                     style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
-        ])
+        ]),
 
         ], style={
-        "gap": "60px",
+        "gap": "30px",
         "display": "grid",
         "gridTemplateColumns": "repeat(4, minmax(0, 1fr))",
         "margin": "auto",
@@ -1438,23 +1498,7 @@ app.layout = html.Div([
         "marginTop": "50px",
     }),
 
-    html.Div([
-        html.Button("Set material flow variables to default", id="reset-btn-2", n_clicks=0,
-                    style={
-                        "marginTop": "20px",
-                        "padding": "10px 20px",
-                        "fontWeight": "bold",
-                        "backgroundColor": "#e0e0e0",
-                        "borderRadius": "6px",
-                        "cursor": "pointer"
-                    }),
-    ], style={
-        "flex": "1",
-        "display": "flex",
-        "flexDirection": "column",
-        "marginLeft": "20px",
-        "alignItems": "center"}
-    ),
+
 
     html.Hr(style={
         "border": "none",       # remove default border
@@ -1699,11 +1743,11 @@ INPUT_ORDER = [
     [
         Output("model-data", "data"),
         Output("sankey", "figure"),
-        #Output("forest-bar", "figure"),
         Output("capacity-status", "children"),
         Output("capacity-status", "style"),
+        Output("share_style_box", "style"),
+        Output("sd_style_box", "style"),
         Output("lumber_demand_status", "children"),
-   #     Output("lumber_demand_status", "style"),
         Output("lumber_supply_status", "children"),
         Output("lumber_supply_status", "style"),
         Output("lumber_supply_text", "children"),
@@ -1810,11 +1854,75 @@ def update_all_charts(*vals):
     bar_fig = dash.no_update
     sankey_fig = dash.no_update  # aluksi None, luodaan vain validien osien perusteella
 
+    share_style_box = {
+        "flex": "1",
+        "display": "flex",
+        "flexDirection": "column",
+        "justifyContent": "flex-start",  # <--- FIX
+        "width": "100%",
+        "minWidth": "0",
+        "border": "1px solid #ddd",
+        "borderRadius": "12px",
+        "padding": "12px",
+        "marginBottom": "20px",
+        "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
+        "borderBottom": "3px double black",
+        "backgroundColor": "#d4f4dd"  # light red
+    }
+
+    sd_style_box_r = {
+        "flex": "1",
+        "display": "flex",
+        "flexDirection": "column",
+        "justifyContent": "flex-start",  # <--- FIX
+        "width": "100%",
+        "minWidth": "0",
+        "border": "1px solid #ddd",
+        "borderRadius": "12px",
+        "padding": "12px",
+        "marginBottom": "20px",
+        "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
+        "borderBottom": "3px double black",
+        "backgroundColor": "#f4d4d4"
+    }
+
+    sd_style_box_g = {
+        "flex": "1",
+        "display": "flex",
+        "flexDirection": "column",
+        "justifyContent": "flex-start",  # <--- FIX
+        "width": "100%",
+        "minWidth": "0",
+        "border": "1px solid #ddd",
+        "borderRadius": "12px",
+        "padding": "12px",
+        "marginBottom": "20px",
+        "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
+        "borderBottom": "3px double black",
+        "backgroundColor": "#d4f4dd"
+    }
 
     # --- 1️⃣ Capacity (lumber/paper/fuel) ---
     if abs(total_shares - 100) > 0.01:
-        status_text = f"{total_shares:.0f}% ❌ lumber, pulpwood and fuelwood shares must equal 100%"
+        status_text = f"{total_shares:.0f}% ❌ shares must equal 100%"
         status_style = {"color": "red"}
+
+        share_style_box = {
+            "flex": "1",
+            "display": "flex",
+            "flexDirection": "column",
+            "justifyContent": "flex-start",  # <--- FIX
+            "width": "100%",
+            "minWidth": "0",
+            "border": "1px solid #ddd",
+            "borderRadius": "12px",
+            "padding": "12px",
+            "marginBottom": "20px",
+            "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
+            "borderBottom": "3px double black",
+            "backgroundColor": "#f4d4d4"  # light red
+        }
+
         lumber_supply = vals[INPUT_ORDER.index("lumber")] + vals[INPUT_ORDER.index("import_lumber")] - vals[
             INPUT_ORDER.index("from_lumber_to_pulp")] + vals[INPUT_ORDER.index("recovery_timber")]
         pulp_supply = vals[INPUT_ORDER.index("paper")] + vals[INPUT_ORDER.index("import_paper")] + vals[INPUT_ORDER.index("from_lumber_to_pulp")]
@@ -1829,11 +1937,12 @@ def update_all_charts(*vals):
         timber_supply_text = dash.no_update
        # lumber_supply = dash.no_update
         lumber_supply_text = dash.no_update
-        lumber_supply_text2 = dash.no_update
         pulp_supply = dash.no_update
         pulp_supply_text = dash.no_update
         fuel_supply = dash.no_update
         fuel_supply_text = dash.no_update
+        lumber_supply_text2 = dash.no_update
+
     else:
         total_logging = data["logging_intensity"] * (((data["unprotectedForest"] + data["protWoodlands"]))/100 * 40000)
         total_logging_text = f"Total timber harvesting: {total_logging:,.0f} mcf"
@@ -1853,19 +1962,21 @@ def update_all_charts(*vals):
         #bar_fig = make_stacked_bar(data)
         status_text = f"{total_shares:.0f}% ✅ Balanced"
         status_style = {"color": "green"}
-        lumber_supply_text = f"Lumber supply: {round(lumber_supply, -2):,.0f} mcf (after deduction of residues for pulp production)"
-        lumber_supply_text2 = f"Lumber supply: {round(lumber_supply, -2):,.0f} mcf"
-        lumber_demand_text = f"Demand {round(total_enduse, -2):,.0f}"
+
+        lumber_supply_text = f"Lumber supply (after deduction of residues for pulp production): {round(lumber_supply, -2):,.0f} mcf "
+
+       # lumber_demand_text = f"Demand {round(total_enduse, -2):,.0f}"
         pulp_supply_text = f"Pulpwood supply: {round(pulp_supply, -3):,.0f} mcf"
         fuel_supply_text = f"Fuelwood supply: {round(fuel_supply, -3):,.0f} mcf"
+
+
     # --- 2 End-use (loppukäyttö) ---
     if abs(total_enduse - lumber_supply) > 1000:
-        lumber_demand_text = f"Demand {round(total_enduse, -2):,.0f}"
-        lumber_demand_style = {"color": "red"}
-
         lumber_supply_status_text = f"❌ Supply and demand not in balance"
 
         lumber_supply_status_style = {"color": "red"}
+
+
     else:
 
         data["construction_multistory_val"] = int(data["construction_multistory_val"])
@@ -1875,17 +1986,18 @@ def update_all_charts(*vals):
         data["other_val"] = int(data["other_val"])
         data["other_construction_val"] = int(data["other_construction_val"])
         data["non_res_construction_val"] = int(data["non_res_construction_val"])
-        lumber_demand_text = f"Demand {round(total_enduse, -2):,.0f}"
-        lumber_demand_style = {"color": "red"}
+      #  lumber_demand_text = f"Demand {round(total_enduse, -2):,.0f}"
+     #   lumber_demand_style = {"color": "red"}
 
         lumber_supply_status_text = ("✅ Supply and demand are in balance")
         lumber_supply_status_style = {"color": "green"}
 
-    # --- Sankey-päivitys vain, jos molemmat balanssissa ---
+     # --- Sankey-päivitys vain, jos molemmat balanssissa ---
     if abs((total_shares - 100)) <= 0.01 and abs((total_enduse - lumber_supply)) > 1000:
         sankey_fig = make_sankey(data)
     else:
         sankey_fig = dash.no_update
+
 
     if triggered_id == "reset-btn-1":
         for key in keys_btn1:
@@ -1946,14 +2058,47 @@ def update_all_charts(*vals):
         data["other_construction_val"], DEFAULTS["other_construction_val"]
     )
 
+    diff = total_enduse - lumber_supply
+
+    # --- demand always updates ---
+    if abs(diff) <= 1000:
+        lumber_demand_text = f"Lumber demand: {round(total_enduse, -2):,.0f} mcf ➖ balanced"
+
+    elif diff > 1000:
+        lumber_demand_text = f"Lumber demand: {round(total_enduse, -2):,.0f} mcf 🟢 higher"
+
+    else:
+        lumber_demand_text = f"Lumber demand: {round(total_enduse, -2):,.0f} mcf 🔴 lower"
+
+    # --- supply only updates if shares = 100 ---
+    if abs(total_shares - 100) > 0.01:
+        lumber_supply_text2 = dash.no_update
+
+    else:
+        # supply updates normally
+        if abs(diff) <= 1000:
+            lumber_supply_text2 = f"Lumber supply: {round(lumber_supply, -2):,.0f} mcf ➖ balanced"
+
+        elif diff > 1000:
+            lumber_supply_text2 = f"Lumber supply: {round(lumber_supply, -2):,.0f} mcf 🔴 lower"
+
+        else:
+            lumber_supply_text2 = f"Lumber supply: {round(lumber_supply, -2):,.0f} mcf 🟢 higher"
+
+    if abs(total_enduse - lumber_supply) > 1000:
+        sd_style_box = sd_style_box_r
+    elif abs(total_enduse - lumber_supply) <= 1000:
+        sd_style_box = sd_style_box_g
+    else: sd_style_box = dash.no_update
+
     return (
         data,
         sankey_fig,
-        # bar_fig,
         status_text,
         status_style,
+        share_style_box,
+        sd_style_box,
         lumber_demand_text,
-      #  lumber_demand_style,
         lumber_supply_status_text,
         lumber_supply_status_style,
         lumber_supply_text,
