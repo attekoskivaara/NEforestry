@@ -859,10 +859,11 @@ app.layout = html.Div([
         # --- Column 1: Logging + Imports ---
         html.Div([
             html.Div([
-                html.Label("3.1. Material Source", style={"fontWeight": "bold", "marginBottom": "10px"}),
+                html.Label("3.1. Timber sources in New England ", style={"fontWeight": "bold", "marginBottom": "10px"}),
 
+                html.Label("Total roundwood market size = ", style={"fontWeight": "bold"}),
                 html.Label([
-                    html.Span("Timber harvesting intensity (thousand cubic feets / acre) ", style={"fontWeight": "bold"}),
+                    html.Span("Timber harvesting intensity (mcf / acre) ", style={"fontWeight": "normal"}),
                     html.Span(f"(in 2020: {DEFAULTS['logging_intensity']} mcf/acre)",
                                 style={"fontWeight": "normal"})
                     ]),
@@ -876,44 +877,57 @@ app.layout = html.Div([
 
                 html.Div([
                     html.Label([
-                        html.Span("Import lumber ", style={"fontWeight": "bold", "display": "inline-block"}),
+                        html.Span("+ Import lumber ", style={"fontWeight": "bold", "display": "inline-block"}),
                         html.Span(f"(in 2020: {DEFAULTS['import_lumber']:,})",
                                     style={"fontWeight": "normal", "marginLeft": "5px"})
                     ], style={"display": "block", "marginBottom": "10px"}),  # varmistaa block-tason spacing
-                    dbc.Input(
-                        id="import_lumber",
-                        type="number",
-                        min=0,
-                        max=500000,
-                        step=1000,
-                        value=int(149700),
-                        style={
-                            "width": "160px",
-                            "marginBottom": "20px",
-                            "textAlign": "right"
-                        }
-                    )
+                dbc.InputGroup(
+                    [
+                        dbc.Input(
+                            id="import_lumber",
+                            type="number",
+                            min=0,
+                            max=500000,
+                            step=1000,
+                            value=int(149700),
+                            style={
+                                "width": "120px",
+                                "textAlign": "right"
+                            }
+                        ),
+                        dbc.InputGroupText("mcf")
+                    ],
+                    style={"marginBottom": "20px"})
+
 
                 ], style={"paddingTop": "40px", "width": "100%"}),
 
 
                 html.Label([
-                    html.Span("Import pulp ", style={"fontWeight": "bold"}),
+                    html.Span("+ Import pulpwood ", style={"fontWeight": "bold"}),
                     html.Span(f"(in 2020: {DEFAULTS['import_paper']:,})", style={"fontWeight": "normal"})
                 ]),
-                dbc.Input(
-                    id="import_paper",
-                    type="number",
-                    min=0,
-                    max=500000,
-                    step=1000,
-                    value=int(114900),
-                    style={
-                        "width": "160px",
-                        "marginBottom": "20px",
-                        "textAlign": "right"
-                    }
-                )
+                dbc.InputGroup(
+                    [
+                        dbc.Input(
+                            id="import_paper",
+                            type="number",
+                            min=0,
+                            max=500000,
+                            step=1000,
+                            value=int(114900),
+                            style={
+                                "width": "120px",
+                                "textAlign": "right"
+                            }
+                        ),
+                        dbc.InputGroupText("mcf")
+                    ],
+                    style={"marginBottom": "20px"}),
+
+                html.Div(id="timber_supply", className="bottom-line"),
+
+
             ]),
         ], className='col-3', style={
             "flex": "1",
@@ -928,8 +942,9 @@ app.layout = html.Div([
             # --- Column 2: Products ---
             html.Div([
                 html.Div([
-                    html.Label("3.2. Product Type", style={'fontWeight': 'bold', "marginBottom": "10px"}),
-                    html.Div(id="capacity-status", children="100% ✅ Balanced", style={"color": "green", "marginBottom": "10px"}),
+
+
+                    html.Label("3.2. Roundwood supply by assortments of all roundwood supply", style={'fontWeight': 'bold', "marginBottom": "10px"}),
 
                     # Lumber
                #     html.Label("Lumber total", style={"fontWeight": "bold"}),
@@ -955,26 +970,32 @@ app.layout = html.Div([
                         }
                     ),
 
-                    # Recovered timber sisennettynä DAQ:nä
-                    html.Div([
-                        html.Span("• ", style={"color": "#666"}),  # bullet
-                        html.Label("Recovered timber (thousand ft³)",
-                                   style={"display": "inline-block", "marginLeft": "5px"})
-                    ], style={"marginLeft": "20px", "marginBottom": "5px"}),
-
-                    dbc.Input(
-                        id="recovery_timber",
-                        type="number",
-                        value=DEFAULTS["recovery_timber"],
-                        min=0,
-                        max=16000,
-                        step=1000,
+                    dbc.InputGroup(
+                        [
+                            dbc.Input(
+                                id="recovery_timber",
+                                type="number",
+                                min=0,
+                                max=18000,
+                                step=100,
+                                value=int(8000),
+                                style={
+                                    "width": "120px",
+                                    "textAlign": "right"
+                                }
+                            ),
+                            dbc.InputGroupText("mcf")
+                        ],
                         style={
-                            "width": "150px",
-                            "marginLeft": "40px",
-                            "textAlign": "right"
+                            "marginBottom": "20px",
+                            "display": "flex",
+                            "alignItems": "center",
+                            "flexWrap": "nowrap"  # estää rivin katkeamisen
                         }
                     ),
+
+                    html.Div(id="lumber_supply_text", className="bottom-line", style={"marginTop": "20px", "marginBottom": "20px"}
+),
 
                     dcc.Store(id="lumber", data=DEFAULTS["lumber"]),
                     dcc.Store(id="paper", data=DEFAULTS["paper"]),
@@ -1003,6 +1024,10 @@ app.layout = html.Div([
                             "textAlign": "right"
                         }
                     ),
+                    html.Div(id="pulp_supply_text", className="bottom-line",
+                             style={"marginTop": "20px", "marginBottom": "20px"}),
+
+
                     dcc.Store(id="from_lumber_to_pulp", data=DEFAULTS["from_lumber_to_pulp"]),
 
                     # Fuelwood
@@ -1029,6 +1054,12 @@ app.layout = html.Div([
                         }
                     ),
 
+                    html.Div(id="fuel_supply_text", className="bottom-line",
+                             style={"marginTop": "20px", "marginBottom": "20px"}),
+
+                    html.Div(id="capacity-status", children="100% ✅ Balanced",
+                             style={"color": "green", "marginBottom": "10px"}),
+
                     html.Div(id="share-warning", style={"fontWeight": "bold", "marginTop": "10px"})
                 ]),
 
@@ -1039,17 +1070,19 @@ app.layout = html.Div([
                 "justifyContent": "space-between",
                 "width": "100%",
                 "minWidth": "0",
+                "border": "1px solid #ddd",
+                "borderRadius": "12px",
+                "padding": "12px",
+                "marginBottom": "20px",
+                "backgroundColor": "#fafafa",
+                "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
 
             }),
 
             # --- Column 3: End uses ---
             html.Div([
                 html.Div([
-                    html.Label("3.3. Application / End use", style={'fontWeight': 'bold', "marginBottom": "10px"}),
-                    html.Div(id="lumber_supply_status", style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
-                    html.Div(id="lumber_demand_status",
-                             style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
-
+                    html.Label("3.3. Lumber demand by enduse", style={'fontWeight': 'bold', "marginBottom": "10px"}),
                     # Construction (multistory)
                     html.Label([
                         html.Span("Construction (multistory) ", style={"fontWeight": "bold"}),
@@ -1076,7 +1109,7 @@ app.layout = html.Div([
                             value=int(DEFAULTS["construction_multistory_val"]),
                             min=0,
                             max=600000,
-                            step=1000,
+                            step=100,
                             style={
                                 "width": "160px",
                                 "margin": "0 10px 0 0",  # pieni väli Spanin ja Inputin väliin
@@ -1114,7 +1147,7 @@ app.layout = html.Div([
                             value=int(DEFAULTS["construction_single_val"]),
                             min=0,
                             max=600000,
-                            step=1000,
+                            step=100,
                             style={
                                 "width": "160px",
                                 "margin": "0 10px 0 0",  # pieni väli Spanin ja Inputin väliin
@@ -1167,7 +1200,7 @@ app.layout = html.Div([
                             value=int(DEFAULTS["manufacturing_val"]),
                             min=0,
                             max=600000,
-                            step=1000,
+                            step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
                         html.Span(id="manufacturing_change", style={"fontWeight": "bold"})
@@ -1211,7 +1244,7 @@ app.layout = html.Div([
                             value=int(DEFAULTS["packaging_val"]),
                             min=0,
                             max=600000,
-                            step=1000,
+                            step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
                         html.Span(id="packaging_change", style={"fontWeight": "bold"})
@@ -1255,7 +1288,7 @@ app.layout = html.Div([
                             value=int(DEFAULTS["other_val"]),
                             min=0,
                             max=600000,
-                            step=1000,
+                            step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
                         html.Span(id="other_change", style={"fontWeight": "bold"})
@@ -1296,7 +1329,7 @@ app.layout = html.Div([
                             value=int(DEFAULTS["non_res_construction_val"]),
                             min=0,
                             max=600000,
-                            step=1000,
+                            step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
                         html.Span(id="non_res_construction_change", style={"fontWeight": "bold"})
@@ -1342,7 +1375,7 @@ app.layout = html.Div([
                             value=int(DEFAULTS["other_construction_val"]),
                             min=0,
                             max=600000,
-                            step=1000,
+                            step=100,
                             style={"width": "160px", "margin": "0 10px 0 0", "textAlign": "right"},
                         ),
                         html.Span(id="other_construction_change", style={"fontWeight": "bold"})
@@ -1377,16 +1410,32 @@ app.layout = html.Div([
                 "justifyContent": "space-between",
                 "width": "100%",
                 "minWidth": "0",
-
             }),
+
+
+# Column 4
+
+        html.Div([
+            html.Div(
+                html.Label("3.4. Lumber supply-demand balance", style={"fontWeight": "bold"})
+            ),
+            html.Div(id="lumber_supply_text2", style={"marginTop": "20px", "marginBottom": "10px"}),
+            html.Div(id="lumber_demand_status", style={"marginTop": "20px", "marginBottom": "10px"}),
+      #      html.Div(id="lumber_demand_status",
+       #              style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
+         #   html.Div(id="lumber_supply_status_text"),
+            html.Div(id="lumber_supply_status",
+                     style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
+        ])
+
         ], style={
         "gap": "60px",
         "display": "grid",
-        "gridTemplateColumns": "repeat(3, minmax(0, 1fr))",
+        "gridTemplateColumns": "repeat(4, minmax(0, 1fr))",
         "margin": "auto",
-        "maxWidth": "1200px",
+        "maxWidth": "1400px",
         "width": "100%",
-        "marginTop": "50px"
+        "marginTop": "50px",
     }),
 
     html.Div([
@@ -1556,6 +1605,22 @@ def reset_input_fields(n_clicks):
     # Just in case, return dash.no_update
     return dash.no_update
 
+
+def format_demand_change(current_val, default_val):
+    """
+    Laskee prosenttimuutoksen ja palauttaa tekstin nuolen kanssa.
+    ▲ = kasvu, ▼ = lasku, ■ = ei merkittävää muutosta
+    """
+    pct_change = ((current_val - int(default_val)) / int(default_val)) * 100
+    if pct_change > 0.1:
+        arrow = "▲"
+    elif pct_change < 0:
+        arrow = "▼"
+    else:
+        arrow = "■"
+    return f"Demand change in % from 2020: {arrow} {pct_change:+.1f}%", pct_change
+
+
 '''
 "woodlands_area", "wildlands_area", "from_lumber_to_pulp", "lumber", "paper", "fuelwood",
 "construction_multistory_val", "construction_single_val",
@@ -1638,10 +1703,15 @@ INPUT_ORDER = [
         Output("capacity-status", "children"),
         Output("capacity-status", "style"),
         Output("lumber_demand_status", "children"),
-        Output("lumber_demand_status", "style"),
+   #     Output("lumber_demand_status", "style"),
         Output("lumber_supply_status", "children"),
         Output("lumber_supply_status", "style"),
+        Output("lumber_supply_text", "children"),
+        Output("lumber_supply_text2", "children"),
+        Output("pulp_supply_text", "children"),
+        Output("fuel_supply_text", "children"),
         Output("total_logging", "children"),
+        Output("timber_supply", "children"),
         Output("construction_multistory_val", "max"),
         Output("construction_single_val", "max"),
         Output("manufacturing_val", "max"),
@@ -1725,11 +1795,7 @@ def update_all_charts(*vals):
         "non_res_construction_val"
     ]
 
-
-
     total_shares = data["lumbershare"] + data["papershare"] + data["fuelshare"]
-
-
 
     total_enduse = round(
         data["construction_multistory_val"] +
@@ -1739,7 +1805,7 @@ def update_all_charts(*vals):
         data["other_val"] +
         data["other_construction_val"] +
         data["non_res_construction_val"]
-    , -3)
+    , -2)
     # --- Alustetaan figuurit ---
     bar_fig = dash.no_update
     sankey_fig = dash.no_update  # aluksi None, luodaan vain validien osien perusteella
@@ -1747,23 +1813,39 @@ def update_all_charts(*vals):
 
     # --- 1️⃣ Capacity (lumber/paper/fuel) ---
     if abs(total_shares - 100) > 0.01:
-        status_text = f"{total_shares:.0f}% ❌ Must equal 100%"
+        status_text = f"{total_shares:.0f}% ❌ lumber, pulpwood and fuelwood shares must equal 100%"
         status_style = {"color": "red"}
         lumber_supply = vals[INPUT_ORDER.index("lumber")] + vals[INPUT_ORDER.index("import_lumber")] - vals[
             INPUT_ORDER.index("from_lumber_to_pulp")] + vals[INPUT_ORDER.index("recovery_timber")]
+        pulp_supply = vals[INPUT_ORDER.index("paper")] + vals[INPUT_ORDER.index("import_paper")] + vals[INPUT_ORDER.index("from_lumber_to_pulp")]
+        fuel_supply = vals[INPUT_ORDER.index("fuelwood")]
+
         data["lumber"] = vals[INPUT_ORDER.index("lumber")]
         data["paper"] = vals[INPUT_ORDER.index("paper")]
         data["fuelwood"] = vals[INPUT_ORDER.index("fuelwood")]
         total_logging = dash.no_update
         total_logging_text = dash.no_update
+        timber_supply = dash.no_update
+        timber_supply_text = dash.no_update
+       # lumber_supply = dash.no_update
+        lumber_supply_text = dash.no_update
+        lumber_supply_text2 = dash.no_update
+        pulp_supply = dash.no_update
+        pulp_supply_text = dash.no_update
+        fuel_supply = dash.no_update
+        fuel_supply_text = dash.no_update
     else:
         total_logging = data["logging_intensity"] * (((data["unprotectedForest"] + data["protWoodlands"]))/100 * 40000)
-        total_logging_text = f"Total timber harvesting: {total_logging:,.0f} (thousand ft³)"
+        total_logging_text = f"Total timber harvesting: {total_logging:,.0f} mcf"
+        timber_supply = total_logging + data["import_lumber"] + data["import_paper"]
+        timber_supply_text = f"Total roundwood market size: {timber_supply:,.0f} mcf"
         data["lumber"] = total_logging * (data["lumbershare"] / 100)
 
         from_lumber_to_pulp = 0.333 * data["lumber"]
         data["from_lumber_to_pulp"] = 0.333 * data["lumber"]
         lumber_supply = round((data["lumbershare"] / 100 * total_logging) + data["import_lumber"] - data["from_lumber_to_pulp"] + data["recovery_timber"], -3)
+        pulp_supply = round((data["papershare"] / 100 * total_logging) + data["import_paper"] + data["from_lumber_to_pulp"], -3)
+        fuel_supply = round((data["fuelshare"] / 100 * total_logging), -3)
 
         data["paper"] = total_logging * (data["papershare"] / 100)
         data["fuelwood"] = total_logging * (data["fuelshare"] / 100)
@@ -1771,26 +1853,33 @@ def update_all_charts(*vals):
         #bar_fig = make_stacked_bar(data)
         status_text = f"{total_shares:.0f}% ✅ Balanced"
         status_style = {"color": "green"}
-
-    # --- 2️⃣ End-use (loppukäyttö) ---
+        lumber_supply_text = f"Lumber supply: {round(lumber_supply, -2):,.0f} mcf (after deduction of residues for pulp production)"
+        lumber_supply_text2 = f"Lumber supply: {round(lumber_supply, -2):,.0f} mcf"
+        lumber_demand_text = f"Demand {round(total_enduse, -2):,.0f}"
+        pulp_supply_text = f"Pulpwood supply: {round(pulp_supply, -3):,.0f} mcf"
+        fuel_supply_text = f"Fuelwood supply: {round(fuel_supply, -3):,.0f} mcf"
+    # --- 2 End-use (loppukäyttö) ---
     if abs(total_enduse - lumber_supply) > 1000:
-        lumber_demand_text = f"Demand {round(total_enduse, -3):,.0f}"
+        lumber_demand_text = f"Demand {round(total_enduse, -2):,.0f}"
         lumber_demand_style = {"color": "red"}
-        lumber_supply_text = f"Supply: {round(lumber_supply, -3):,.0f} mcf"
-        lumber_supply_style = {"color": "red"}
+
+        lumber_supply_status_text = f"❌ Supply and demand not in balance"
+
+        lumber_supply_status_style = {"color": "red"}
     else:
 
-        data["construction_multistory_val"] = (data["construction_multistory_val"])
-        data["construction_single_val"] = (data["construction_single_val"])
-        data["manufacturing_val"] = (data["manufacturing_val"])
-        data["packaging_val"] = (data["packaging_val"])
-        data["other_val"] = (data["other_val"])
-        data["other_construction_val"] = (data["other_construction_val"])
-        data["non_res_construction_val"] = (data["non_res_construction_val"])
-        lumber_demand_text = f"Demand {round(total_enduse, -3):,.0f}"
+        data["construction_multistory_val"] = int(data["construction_multistory_val"])
+        data["construction_single_val"] = int(data["construction_single_val"])
+        data["manufacturing_val"] = int(data["manufacturing_val"])
+        data["packaging_val"] = int(data["packaging_val"])
+        data["other_val"] = int(data["other_val"])
+        data["other_construction_val"] = int(data["other_construction_val"])
+        data["non_res_construction_val"] = int(data["non_res_construction_val"])
+        lumber_demand_text = f"Demand {round(total_enduse, -2):,.0f}"
         lumber_demand_style = {"color": "red"}
-        lumber_supply_text = f"{round(total_enduse, -3):,.0f} mcf ✅ Supply and demand are in balance"
-        lumber_supply_style = {"color": "green"}
+
+        lumber_supply_status_text = ("✅ Supply and demand are in balance")
+        lumber_supply_status_style = {"color": "green"}
 
     # --- Sankey-päivitys vain, jos molemmat balanssissa ---
     if abs((total_shares - 100)) <= 0.01 and abs((total_enduse - lumber_supply)) > 1000:
@@ -1823,67 +1912,40 @@ def update_all_charts(*vals):
         sankey_fig = make_sankey(data)
 
     # 1. Construction multistory
-    inc_construction_multistory_pct = ((data["construction_multistory_val"] - int(
-        DEFAULTS["construction_multistory_val"])) / int(DEFAULTS["construction_multistory_val"])) * 100
-    construction_multistory_str = f"Demand change in % from 2020: {inc_construction_multistory_pct:+.1f}%"
-    construction_multistory_color = (
-        "green" if inc_construction_multistory_pct > 0.1
-        else "red" if inc_construction_multistory_pct < 0
-        else "grey"
+    construction_multistory_str, inc_construction_multistory_pct = format_demand_change(
+        data["construction_multistory_val"], DEFAULTS["construction_multistory_val"]
     )
+
     # 2. Construction single
-    inc_construction_single_pct = ((data["construction_single_val"] - int(DEFAULTS["construction_single_val"])) / int(
-        DEFAULTS["construction_single_val"])) * 100
-    construction_single_str = f"Demand change in % from 2020: {inc_construction_single_pct:+.1f}%"
-    construction_single_color = (
-        "green" if inc_construction_single_pct > 0.1
-        else "red" if inc_construction_single_pct < 0
-        else "grey"
+    construction_single_str, inc_construction_single_pct = format_demand_change(
+        data["construction_single_val"], DEFAULTS["construction_single_val"]
     )
+
     # 3. Manufacturing
-    inc_manufacturing_pct = ((data["manufacturing_val"] - int(DEFAULTS["manufacturing_val"])) / int(
-        DEFAULTS["manufacturing_val"])) * 100
-    manufacturing_str = f"Demand change in % from 2020: {inc_manufacturing_pct:+.1f}%"
-    manufacturing_color = (
-        "green" if inc_manufacturing_pct > 0.1
-        else "red" if inc_manufacturing_pct < 0
-        else "grey"
+    manufacturing_str, inc_manufacturing_pct = format_demand_change(
+        data["manufacturing_val"], DEFAULTS["manufacturing_val"]
     )
+
     # 4. Packaging
-    inc_packaging_pct = ((data["packaging_val"] - int(DEFAULTS["packaging_val"])) / int(
-        DEFAULTS["packaging_val"])) * 100
-    packaging_str = f"Demand change in % from 2020: {inc_packaging_pct:+.1f}%"
-    packaging_color = (
-        "green" if inc_packaging_pct > 0.1
-        else "red" if inc_packaging_pct < 0
-        else "grey"
+    packaging_str, inc_packaging_pct = format_demand_change(
+        data["packaging_val"], DEFAULTS["packaging_val"]
     )
+
     # 5. Other
-    inc_other_pct = ((data["other_val"] - int(DEFAULTS["other_val"])) / int(DEFAULTS["other_val"])) * 100
-    other_str = f"Demand change in % from 2020: {inc_other_pct:+.1f}%"
-    other_color = (
-        "green" if inc_other_pct > 0.1
-        else "red" if inc_other_pct < 0
-        else "grey"
+    other_str, inc_other_pct = format_demand_change(
+        data["other_val"], DEFAULTS["other_val"]
     )
+
     # 6. Non res. Construction
-    inc_non_res_construction_pct = ((data["non_res_construction_val"] - int(DEFAULTS["non_res_construction_val"])) / int(
-        DEFAULTS["non_res_construction_val"])) * 100
-    non_res_construction_str = f"Demand change in % from 2020: {inc_non_res_construction_pct:+.1f}%"
-    non_res_construction_color = (
-        "green" if inc_non_res_construction_pct > 0.1
-        else "red" if inc_non_res_construction_pct < 0
-        else "grey"
+    non_res_construction_str, inc_non_res_construction_pct = format_demand_change(
+        data["non_res_construction_val"], DEFAULTS["non_res_construction_val"]
     )
+
     # 7. Other Construction
-    inc_other_construction_pct = ((data["other_construction_val"] - int(DEFAULTS["other_construction_val"])) / int(
-        DEFAULTS["other_construction_val"])) * 100
-    other_construction_str = f"Demand change in % from 2020: {inc_other_construction_pct:+.1f}%"
-    other_construction_color = (
-        "green" if inc_other_construction_pct > 0.1
-        else "red" if inc_other_construction_pct < 0
-        else "grey"
+    other_construction_str, inc_other_construction_pct = format_demand_change(
+        data["other_construction_val"], DEFAULTS["other_construction_val"]
     )
+
     return (
         data,
         sankey_fig,
@@ -1891,10 +1953,15 @@ def update_all_charts(*vals):
         status_text,
         status_style,
         lumber_demand_text,
-        lumber_demand_style,
+      #  lumber_demand_style,
+        lumber_supply_status_text,
+        lumber_supply_status_style,
         lumber_supply_text,
-        lumber_supply_style,
+        lumber_supply_text2,
+        pulp_supply_text,
+        fuel_supply_text,
         total_logging_text,
+        timber_supply_text,
         lumber_supply,
         lumber_supply,
         lumber_supply,
@@ -1902,13 +1969,13 @@ def update_all_charts(*vals):
         lumber_supply,
         lumber_supply,
         lumber_supply,
-        html.Span(construction_multistory_str, style={"color": construction_multistory_color, "fontWeight": "bold"}),
-        html.Span(construction_single_str, style={"color": construction_single_color, "fontWeight": "bold"}),
-        html.Span(manufacturing_str, style={"color": manufacturing_color, "fontWeight": "bold"}),
-        html.Span(packaging_str, style={"color": packaging_color, "fontWeight": "bold"}),
-        html.Span(other_str, style={"color": other_color, "fontWeight": "bold"}),
-        html.Span(non_res_construction_str, style={"color": non_res_construction_color, "fontWeight": "bold"}),
-        html.Span(other_construction_str, style={"color": other_construction_color, "fontWeight": "bold"}),
+        html.Span(construction_multistory_str),
+        html.Span(construction_single_str),
+        html.Span(manufacturing_str),
+        html.Span(packaging_str),
+        html.Span(other_str),
+        html.Span(non_res_construction_str),
+        html.Span(other_construction_str),
 
     )
 
