@@ -6,7 +6,7 @@ import pandas as pd
 import dash_daq as daq
 import dash_bootstrap_components as dbc
 import numpy as np
-
+import json
 
 def lerp(a, b, t):
     return int(a + (b - a) * t)
@@ -847,7 +847,7 @@ app.layout = html.Div([
             "paddingTop": "60px",
             "gap": "20px",
             "margin": "auto",
-            "maxWidth": "1200px",
+            "maxWidth": "1400px",
             "width": "100%",
 
         }),
@@ -1455,7 +1455,7 @@ app.layout = html.Div([
 # Column 4
 
         html.Div([
-            html.H4("3.4. Lumber supply-demand balance", style={"fontWeight": "bold"}),
+            html.H4("Supply-demand balance", style={"fontWeight": "bold"}),
 
 
                 html.Div([
@@ -1925,6 +1925,7 @@ def update_all_charts(*vals):
 
         lumber_supply = vals[INPUT_ORDER.index("lumber")] + vals[INPUT_ORDER.index("import_lumber")] - vals[
             INPUT_ORDER.index("from_lumber_to_pulp")] + vals[INPUT_ORDER.index("recovery_timber")]
+
         pulp_supply = vals[INPUT_ORDER.index("paper")] + vals[INPUT_ORDER.index("import_paper")] + vals[INPUT_ORDER.index("from_lumber_to_pulp")]
         fuel_supply = vals[INPUT_ORDER.index("fuelwood")]
 
@@ -1952,7 +1953,7 @@ def update_all_charts(*vals):
 
         from_lumber_to_pulp = 0.333 * data["lumber"]
         data["from_lumber_to_pulp"] = 0.333 * data["lumber"]
-        lumber_supply = round((data["lumbershare"] / 100 * total_logging) + data["import_lumber"] - data["from_lumber_to_pulp"] + data["recovery_timber"], -3)
+        lumber_supply = round((data["lumbershare"] / 100 * total_logging) + data["import_lumber"] - data["from_lumber_to_pulp"] + data["recovery_timber"], -2)
         pulp_supply = round((data["papershare"] / 100 * total_logging) + data["import_paper"] + data["from_lumber_to_pulp"], -3)
         fuel_supply = round((data["fuelshare"] / 100 * total_logging), -3)
 
@@ -2000,6 +2001,7 @@ def update_all_charts(*vals):
 
 
     if triggered_id == "reset-btn-1":
+        reset_btn_1 =+ 1
         for key in keys_btn1:
             data[key] = DEFAULTS[key]
         data["construction_multistory_val"] = (DEFAULTS["construction_multistory_val"])
@@ -2013,6 +2015,7 @@ def update_all_charts(*vals):
         sankey_fig = make_sankey(data)
 
     elif triggered_id == "reset-btn-2":
+        reset_btn_2 =+ 1
         for key in keys_btn2:
             data[key] = DEFAULTS[key]
         # Recalculate dependent values if needed
@@ -2161,32 +2164,8 @@ states += [
     State("non_res_construction", "data")
 ]
 
-@app.callback(
-    Output("submit-msg", "children"),
-    Input("submit-btn", "n_clicks"),
-    states
-)
-def submit_to_db(n_clicks, *vals):
-    if not n_clicks:
-        raise dash.exceptions.PreventUpdate
 
-    # Open DB connection
-    conn = sqlite3.connect("data.db")
-    c = conn.cursor()
 
-  # Insert all values (15 placeholders)
-    c.execute("""
-    INSERT INTO responses 
-    (woodlands_area, wildlands_area, lumber, paper, fuelwood, import_lumber, import_paper,
-     construction_multistory, construction_single, manufacturing, packaging, other, other_construction, non_res_construction,
-     recovery_timber, from_lumber_to_pulp)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, vals)
-
-    conn.commit()
-    conn.close()
-
-    return "✅ Responses saved successfully!"
 
 
 @app.callback(
@@ -2271,6 +2250,128 @@ def enforce_lumber_import(lumber, recovery_timber, construction_multistory, cons
 
     return import_lumber
 '''
+def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
+    conn = sqlite3.connect("data.db")
+    c = conn.cursor()
+
+    # Convert lists to JSON strings
+    for key, value in user_inputs.items():
+        if isinstance(value, list):
+            user_inputs[key] = json.dumps(value)
+
+    # Merge all columns into one dict
+    full_data = {}
+    full_data.update(user_inputs)
+    full_data.update(likert_answers)
+    full_data.update({f"{k}_cannot_answer": v for k, v in cannot_flags_dict.items()})
+
+    # Construct SQL
+    columns = ", ".join(full_data.keys())
+    placeholders = ", ".join(["?"] * len(full_data))
+    values = list(full_data.values())
+
+    sql = f"INSERT INTO responses ({columns}) VALUES ({placeholders})"
+
+    c.execute(sql, values)
+    conn.commit()
+    conn.close()
+    print("Responses saved successfully.")
+
+
+@app.callback(
+    Output("submit-msg", "children"),
+    Input("submit-btn", "n_clicks"),
+    [State("lumbershare", "value"),
+     State("papershare", "value"),
+     State("fuelshare", "value"),
+     State("import_lumber", "value"),
+     State("import_paper", "value"),
+     State("construction_multistory_val", "value"),
+     State("construction_single_val", "value"),
+     State("manufacturing_val", "value"),
+     State("packaging_val", "value"),
+     State("other_val", "value"),
+     State("other_construction_val", "value"),
+     State("non_res_construction_val", "value"),
+     State("recovery_timber", "value"),
+     State("logging_intensity", "value"),
+    State("state-checklist", "value"),
+    State("organization_type", "value"),
+    State("organization_type_other", "value"),
+    State("prof_position", "value"),
+    State("prof_position_other", "value"),
+    State("years_experience", "value"),
+
+    ] +
+    [State({'type': 'importance-slider', 'index': q["id"]}, 'value') for q in likert_questions] +
+    [State({'type': 'cannot-answer', 'index': q["id"]}, 'on') for q in likert_questions]
+)
+def submit_responses_callback(
+    n_clicks,
+    lumbershare,
+    papershare,
+    fuelshare,
+    import_lumber,
+    import_paper,
+    construction_multistory_val,
+    construction_single_val,
+    manufacturing_val,
+    packaging_val,
+    other_val,
+    other_construction_val,
+    non_res_construction_val,
+    recovery_timber,
+    logging_intensity,
+    state_checklist,
+    organization_type,
+    organization_type_other,
+    prof_position,
+    prof_position_other,
+    years_experience,
+    *args
+):
+    if n_clicks is None or n_clicks == 0:
+        raise dash.exceptions.PreventUpdate
+
+    # Erotellaan Likert-sliderit ja cannot-answer -flagit
+    num_sliders = len(likert_questions)
+    slider_values = args[:num_sliders]
+    cannot_flags = args[num_sliders:]
+
+    # Käyttäjän antamat inputit
+    user_inputs = {
+        "lumbershare": lumbershare,
+        "papershare": papershare,
+        "fuelshare": fuelshare,
+        "import_lumber": import_lumber,
+        "import_paper": import_paper,
+        "construction_multistory_val": construction_multistory_val,
+        "construction_single_val": construction_single_val,
+        "manufacturing_val": manufacturing_val,
+        "packaging_val": packaging_val,
+        "other_val": other_val,
+        "other_construction_val": other_construction_val,
+        "non_res_construction_val": non_res_construction_val,
+        "recovery_timber": recovery_timber,
+        "logging_intensity": logging_intensity,
+        "states": state_checklist,
+        "organization_type": organization_type,
+        "organization_type_other": organization_type_other,
+        "prof_position": prof_position,
+        "prof_position_other": prof_position_other,
+        "years_experience": years_experience,
+    }
+
+    # Likert-slider arvot
+    likert_answers = {q["id"]: val for q, val in zip(likert_questions, slider_values)}
+
+    # Likert “cannot answer” flagit (0/1)
+    cannot_flags_dict = {q["id"]: int(flag) for q, flag in zip(likert_questions, cannot_flags)}
+
+    # Tallenna kantaan
+    save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict)
+
+    return "✅ Responses submitted successfully!"
 
 
 if __name__ == "__main__":
