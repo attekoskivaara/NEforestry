@@ -7,6 +7,11 @@ import dash_daq as daq
 import dash_bootstrap_components as dbc
 import numpy as np
 import json
+import hashlib
+
+def hash_password(password):
+    return hashlib.sha256(password.encode()).hexdigest()
+
 
 def lerp(a, b, t):
     return int(a + (b - a) * t)
@@ -94,19 +99,19 @@ DEFAULTS = {
     "import_lumber": 149700,
     "import_paper": 114900,
     "construction_multistory": 5,
-    "construction_multistory_val": TOTAL_DEMAND * 0.05,
+    "construction_multistory_val": round(TOTAL_DEMAND * 0.05,- 2),
     "construction_single": 26,
-    "construction_single_val": TOTAL_DEMAND * 0.26,
+    "construction_single_val": round(TOTAL_DEMAND * 0.26, -2),
     "manufacturing": 12,
-    "manufacturing_val": TOTAL_DEMAND * 0.12,
+    "manufacturing_val": round(TOTAL_DEMAND * 0.12, -2),
     "packaging": 13,
-    "packaging_val": TOTAL_DEMAND * 0.13,
+    "packaging_val": round(TOTAL_DEMAND * 0.13, -2),
     "other": 9,
-    "other_val": TOTAL_DEMAND * 0.09,
+    "other_val": round(TOTAL_DEMAND * 0.09, -2),
     "other_construction": 28,   #residential repair and remodeling
-    "other_construction_val": TOTAL_DEMAND * 0.28,
+    "other_construction_val": round(TOTAL_DEMAND * 0.28, -2),
     "non_res_construction": 7,
-    "non_res_construction_val": TOTAL_DEMAND * 0.07,
+    "non_res_construction_val": round(TOTAL_DEMAND * 0.07, -2),
     "recovery_timber": 8000,
     "logging_intensity": 27
 }
@@ -167,10 +172,22 @@ likert_questions = [
      "text": "…the forest-based sector actively engages with local communities, assesses social and environmental impacts, and contributes to local well-being through transparent collaboration?"}
 ]
 
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
 # app = Dash(__name__)
 app.title = "Forest Flow Dashboard"
+
+USERS_DB_FILE = "users.db"
+
+def check_user(email, password):
+    conn = sqlite3.connect(USERS_DB_FILE)
+    c = conn.cursor()
+    c.execute("SELECT password_hash FROM users WHERE email=?", (email,))
+    row = c.fetchone()
+    conn.close()
+    if row and hash_password(password) == row[0]:
+        return True
+    return False
 
 def make_sankey(values):
     labels = [
@@ -392,10 +409,35 @@ def make_stacked_bar(values):
 
     return fig
 
-app.layout = html.Div([
+
+login_layout = dbc.Container(
+    dbc.Row(
+        dbc.Col(
+            dbc.Card(
+                dbc.CardBody([
+                    html.H3("Vision for New England Forest Survey Login", className="text-center mb-4"),
+                    dbc.Input(id="login-email", placeholder="Email", type="email", className="mb-3"),
+                    dbc.Input(id="login-password", placeholder="Password", type="password", className="mb-3"),
+                    dbc.Button("Login", id="login-btn", color="primary", className="w-100"),
+                    html.Div(id="login-msg", className="mt-3 text-danger text-center"),
+                ]),
+                className="shadow p-4",
+            ),
+            width=6,  # card width
+            className="offset-md-3"  # center horizontally
+        )
+    ),
+    className="mt-5"
+)
+
+def survey_layout(defaults, db_data):
+    if db_data is None:
+        db_data = {}
+    return html.Div([
+    dcc.Store(id="login-state", data=False),
 
     html.Div([
-        html.H3("Vision for forest governance in New England survey", style={"marginBottom": "10px"}),
+        html.H3("Vision for New England Forest Survey", style={"marginBottom": "10px"}),
         html.H4("About this survey"),
         html.P("This survey asks for your views on what the future of forests and the forest industry in New England"
                " should look like in 2060. Your responses will be treated anonymously and will only be analyzed"
@@ -406,10 +448,11 @@ app.layout = html.Div([
                 "fontSize": "16px",
                 "lineHeight": "1.4",
                 "fontWeight": "bold",
-                "color": "#d9534f",
-                "backgroundColor": "#fff3f0",
-                "padding": "5px",
-                "borderRadius": "4px"
+                "color": "#856404",  # dark brownish for readability
+                "backgroundColor": "#fff3cd",  # light yellow/orange highlight
+                "padding": "8px",
+                "borderRadius": "5px",
+                "border": "1px solid #ffeeba"  # subtle border for emphasis
             }
         ),
         html.P("The order in which you answer the survey does not matter. However, your adjustments will affect other "
@@ -458,7 +501,7 @@ app.layout = html.Div([
             dbc.Checklist(
                 options=[{"label": state, "value": state} for state in new_england_states],
                 id="state-checklist",
-                value=[],
+                value=defaults.get("state_checklist", []),
                 inline=False,
                 switch=False
             ),
@@ -475,13 +518,14 @@ app.layout = html.Div([
             dbc.Checklist(
                 id="organization_type",
                 options=organization_options,
-                value=[],
+                value=defaults.get("organization_type", []),
                 inline=False,
                 style={"marginBottom": "20px"}
             ),
             dcc.Input(
                 id="organization_type_other",
                 type="text",
+                value=defaults.get("organization_type_other", ""),
                 placeholder="Please specify if 'Other'",
                 style={
                     "width": "400px",
@@ -496,13 +540,14 @@ app.layout = html.Div([
             dbc.Checklist(
                 id="prof_position",
                 options=role_options,
-                value=[],
+                value=defaults.get("prof_position", []),
                 inline=False,
                 style={"marginBottom": "20px"}
             ),
             dcc.Input(
                 id="prof_position_other",
                 type="text",
+                value=defaults.get("prof_position_other", ""),
                 placeholder="Please specify if 'Other'",
                 style={
                     "width": "400px",
@@ -520,6 +565,7 @@ app.layout = html.Div([
                 type="number",
                 min=0,
                 max=60,
+                value=defaults.get("years_experience"),
                 placeholder="Enter number of years",
                 style={"width": "150px", "marginBottom": "40px"}
             ),
@@ -628,7 +674,7 @@ app.layout = html.Div([
                         ], style={"display": "block", "marginBottom": "5px"}),
                         daq.NumericInput(
                             id="unprotectedForest",
-                            value=DEFAULTS["unprotectedForest"],
+                            value=get_default(defaults, "unprotectedForest"),
                             min=0, max=100, size=70,
                             style={"display": "block", "marginBottom": "20px", "textAlign": "right"}
                         ),
@@ -653,7 +699,7 @@ app.layout = html.Div([
                         ], style={"display": "block", "marginBottom": "5px"}),
                         daq.NumericInput(
                             id="developed",
-                            value=DEFAULTS["developed"],
+                            value=get_default(defaults, "developed"),
                             min=0, max=100, size=70,
                             style={"display": "block", "marginBottom": "20px", "textAlign": "right"}
                         ),
@@ -678,7 +724,7 @@ app.layout = html.Div([
                         ], style={"display": "block", "marginBottom": "5px"}),
                         daq.NumericInput(
                             id="wildlands",
-                            value=DEFAULTS["wildlands"],
+                            value=get_default(defaults, "wildlands"),
                             min=0, max=100, size=70,
                             style={"display": "block", "marginBottom": "20px", "textAlign": "right"}
                         )
@@ -707,7 +753,7 @@ app.layout = html.Div([
                         ], style={"display": "block", "marginBottom": "5px"}),
                         daq.NumericInput(
                             id="protWoodlands",
-                            value=DEFAULTS["protWoodlands"],
+                            value=get_default(defaults, "protWoodlands"),
                             min=0, max=100, size=70,
                             style={"display": "block", "marginBottom": "20px", "textAlign": "right"}
                         ),
@@ -731,7 +777,7 @@ app.layout = html.Div([
                         ], style={"display": "block", "marginBottom": "5px"}),
                         daq.NumericInput(
                             id="farmland",
-                            value=DEFAULTS["farmland"],
+                            value=get_default(defaults, "farmland"),
                             min=0, max=100, size=70,
                             style={"display": "block", "marginBottom": "20px", "textAlign": "right"}
                         ),
@@ -743,7 +789,7 @@ app.layout = html.Div([
                         ], style={"display": "block", "marginBottom": "5px"}),
                         daq.NumericInput(
                             id="waterAndWetlands",
-                            value=DEFAULTS["waterAndWetlands"],
+                            value=get_default(defaults, "waterAndWetlands"),
                             min=0, max=100, size=70,
                             disabled=True,
                             style={
@@ -869,7 +915,8 @@ app.layout = html.Div([
                                 style={"fontWeight": "normal"})
                     ]),
                 dcc.Slider(
-                    id="logging_intensity", min=10, max=45, step=0.5, value=27,
+                    id="logging_intensity", min=10, max=45, step=0.5,
+                    value=defaults.get("logging_intensity", 27),
                     tooltip={"placement": "bottom", "always_visible": True},
                     marks={i: str(i) for i in range(10, 46, 10)}
                 ),
@@ -890,7 +937,7 @@ app.layout = html.Div([
                             min=0,
                             max=500000,
                             step=1000,
-                            value=int(149700),
+                            value=defaults.get("import_lumber", int(149700)),
                             style={
                                 "width": "120px",
                                 "textAlign": "right"
@@ -916,7 +963,7 @@ app.layout = html.Div([
                             min=0,
                             max=500000,
                             step=1000,
-                            value=int(114900),
+                            value=defaults.get("import_paper", int(114900)),
                             style={
                                 "width": "120px",
                                 "textAlign": "right"
@@ -977,7 +1024,7 @@ app.layout = html.Div([
                                 min=0,
                                 max=100,
                                 step=1,
-                                value=int(40),
+                                value=defaults.get("lumbershare", (40)),
                                 size="sm",
                                 style={
                                     "textAlign": "right",
@@ -997,7 +1044,7 @@ app.layout = html.Div([
                                 min=0,
                                 max=18000,
                                 step=100,
-                                value=int(8000),
+                                value=defaults.get("recovery_timber", (8000)),
                                 style={
                                     "width": "120px",
                                     "textAlign": "right"
@@ -1036,7 +1083,7 @@ app.layout = html.Div([
                                 min=0,
                                 max=100,
                                 step=1,
-                                value=int(40),
+                                value=defaults.get("papershare", (40)),
                                 size="sm",
                                 style={
                                     "textAlign": "right",
@@ -1071,7 +1118,7 @@ app.layout = html.Div([
                                 min=0,
                                 max=100,
                                 step=1,
-                                value=int(20),
+                                value=defaults.get("fuelshare", (20)),
                                 size="sm",
                                 style={
                                     "textAlign": "right",
@@ -1132,7 +1179,7 @@ app.layout = html.Div([
                         dbc.Input(
                             id="construction_multistory_val",
                             type="number",
-                            value=int(DEFAULTS["construction_multistory_val"]),
+                            value=defaults.get("construction_multistory_val", (DEFAULTS["construction_multistory_val"])),
                             min=0,
                             max=600000,
                             step=100,
@@ -1170,7 +1217,7 @@ app.layout = html.Div([
                         dbc.Input(
                             id="construction_single_val",
                             type="number",
-                            value=int(DEFAULTS["construction_single_val"]),
+                            value=defaults.get("construction_single_val", (DEFAULTS["construction_single_val"])),
                             min=0,
                             max=600000,
                             step=100,
@@ -1223,7 +1270,7 @@ app.layout = html.Div([
                         dbc.Input(
                             id="manufacturing_val",
                             type="number",
-                            value=int(DEFAULTS["manufacturing_val"]),
+                            value=defaults.get("manufacturing_val", (DEFAULTS["manufacturing_val"])),
                             min=0,
                             max=600000,
                             step=100,
@@ -1267,7 +1314,7 @@ app.layout = html.Div([
                         dbc.Input(
                             id="packaging_val",
                             type="number",
-                            value=int(DEFAULTS["packaging_val"]),
+                            value=defaults.get("packaging_val", (DEFAULTS["packaging_val"])),
                             min=0,
                             max=600000,
                             step=100,
@@ -1311,7 +1358,7 @@ app.layout = html.Div([
                         dbc.Input(
                             id="other_val",
                             type="number",
-                            value=int(DEFAULTS["other_val"]),
+                            value=defaults.get("other_val", (DEFAULTS["other_val"])),
                             min=0,
                             max=600000,
                             step=100,
@@ -1352,7 +1399,7 @@ app.layout = html.Div([
                         dbc.Input(
                             id="non_res_construction_val",
                             type="number",
-                            value=int(DEFAULTS["non_res_construction_val"]),
+                            value=defaults.get("non_res_construction_val", (DEFAULTS["non_res_construction_val"])),
                             min=0,
                             max=600000,
                             step=100,
@@ -1398,7 +1445,7 @@ app.layout = html.Div([
                         dbc.Input(
                             id="other_construction_val",
                             type="number",
-                            value=int(DEFAULTS["other_construction_val"]),
+                            value=defaults.get("other_construction_val", int(DEFAULTS["other_construction_val"])),
                             min=0,
                             max=600000,
                             step=100,
@@ -1522,7 +1569,7 @@ app.layout = html.Div([
                         min=1,
                         max=5,
                         step=1,
-                        value=3,
+                        value=defaults.get(q["id"], 3),
                         marks={j: str(j) for j in range(1, 6)},
                         tooltip={"placement": "bottom", "always_visible": True},
                         updatemode='drag'
@@ -1532,7 +1579,7 @@ app.layout = html.Div([
 
                 daq.BooleanSwitch(
                     id={'type': 'cannot-answer', 'index': q["id"]},
-                    on=False,
+                    on=bool(defaults.get(f"{q['id']}_cannot_answer", 0)),
                     label="Cannot answer",
                     labelPosition="right",
                     style={"marginTop": "5px"}
@@ -1574,11 +1621,53 @@ app.layout = html.Div([
 
     # --- Placeholder for message returned by callback ---
     html.Div(id="submit-msg", style={"marginTop": "10px", "color": "green", "fontWeight": "bold"})
-
 ], style={"padding": "20px", "fontFamily": "Arial, sans-serif"})
 
 
+
+app.layout = html.Div([
+    dcc.Store(id="login-state", data=False, storage_type="session"),
+    dcc.Store(id="user-email", data="", storage_type="session"),
+    html.Div(id="page-content"),  # will be either login_layout or survey_layout
+    dcc.ConfirmDialog(
+        id="submit-confirm",
+        message="✅ Responses submitted successfully! You can now close this survey."
+    )
+])
+
 # --- Callbacks ---
+# Login callback
+@app.callback(
+    Output("login-state", "data"),
+    Output("login-msg", "children"),
+    Output("user-email", "data"),
+    Input("login-btn", "n_clicks"),
+    State("login-email", "value"),
+    State("login-password", "value"),
+    prevent_initial_call=True
+)
+def login_callback(n_clicks, email, password):
+    if not email or not password:
+        return False, "Please enter email and password that were provided to you via email", ""
+    if check_user(email, password):
+        return True, "", email
+    return False, "Invalid email or password", ""
+
+# Page switching
+@app.callback(
+    Output("page-content", "children"),
+    Input("login-state", "data"),
+    Input("user-email", "data")
+)
+def display_page(logged_in, email):
+    if logged_in:
+        db_data = fetch_user_data(email)
+        print(db_data)
+        form_defaults = populate_form_from_db(db_data, likert_questions)
+        print(form_defaults)
+        return survey_layout(form_defaults, db_data)
+    return login_layout
+
 @app.callback(
         Output("protWoodlands", "value"),
         Output("unprotectedForest", "value"),
@@ -2250,27 +2339,31 @@ def enforce_lumber_import(lumber, recovery_timber, construction_multistory, cons
 
     return import_lumber
 '''
+
 def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
     conn = sqlite3.connect("data.db")
     c = conn.cursor()
 
-    # Convert lists to JSON strings
+    # Convert lists or dicts to JSON strings
     for key, value in user_inputs.items():
-        if isinstance(value, list):
+        if isinstance(value, (list, dict)):
             user_inputs[key] = json.dumps(value)
 
-    # Merge all columns into one dict
+    # Merge all data into one dictionary
     full_data = {}
     full_data.update(user_inputs)
     full_data.update(likert_answers)
     full_data.update({f"{k}_cannot_answer": v for k, v in cannot_flags_dict.items()})
 
-    # Construct SQL
+    # Construct SQL dynamically
     columns = ", ".join(full_data.keys())
     placeholders = ", ".join(["?"] * len(full_data))
     values = list(full_data.values())
 
-    sql = f"INSERT INTO responses ({columns}) VALUES ({placeholders})"
+    sql = f"""
+        INSERT OR REPLACE INTO responses ({columns})
+        VALUES ({placeholders})
+    """
 
     c.execute(sql, values)
     conn.commit()
@@ -2278,10 +2371,15 @@ def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
     print("Responses saved successfully.")
 
 
+
 @app.callback(
     Output("submit-msg", "children"),
+    Output("submit-confirm", "displayed"),
     Input("submit-btn", "n_clicks"),
-    [State("lumbershare", "value"),
+    [
+    State("user-email", "data"),
+    State("lumber", "data"),
+    State("lumbershare", "value"),
      State("papershare", "value"),
      State("fuelshare", "value"),
      State("import_lumber", "value"),
@@ -2301,6 +2399,13 @@ def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
     State("prof_position", "value"),
     State("prof_position_other", "value"),
     State("years_experience", "value"),
+     State("protWoodlands", "value"),
+     State("unprotectedForest", "value"),
+     State("wildlands", "value"),
+     State("farmland", "value"),
+     State("developed", "value"),
+     State("waterAndWetlands", "value"),
+     State("from_lumber_to_pulp", "data")
 
     ] +
     [State({'type': 'importance-slider', 'index': q["id"]}, 'value') for q in likert_questions] +
@@ -2308,6 +2413,8 @@ def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
 )
 def submit_responses_callback(
     n_clicks,
+    user_email,
+    lumber,
     lumbershare,
     papershare,
     fuelshare,
@@ -2328,6 +2435,15 @@ def submit_responses_callback(
     prof_position,
     prof_position_other,
     years_experience,
+    protwoodlands,
+    unprotectedforest,
+    wildland,
+    farmland,
+    developed,
+    waterandwetlands,
+    from_lumber_to_pulp,
+
+
     *args
 ):
     if n_clicks is None or n_clicks == 0:
@@ -2338,8 +2454,9 @@ def submit_responses_callback(
     slider_values = args[:num_sliders]
     cannot_flags = args[num_sliders:]
 
-    # Käyttäjän antamat inputit
+    # Käyttäjän antamat inputit (vihreä on kannan sarake)
     user_inputs = {
+        "email": user_email,
         "lumbershare": lumbershare,
         "papershare": papershare,
         "fuelshare": fuelshare,
@@ -2354,12 +2471,19 @@ def submit_responses_callback(
         "non_res_construction_val": non_res_construction_val,
         "recovery_timber": recovery_timber,
         "logging_intensity": logging_intensity,
-        "states": state_checklist,
+        "state_checklist": state_checklist,
         "organization_type": organization_type,
         "organization_type_other": organization_type_other,
         "prof_position": prof_position,
         "prof_position_other": prof_position_other,
         "years_experience": years_experience,
+        "protWoodlands": protwoodlands,
+        "unprotectedForest": unprotectedforest,
+        "wildlands": wildland,
+        "farmland": farmland,
+        "developed": developed,
+        "waterAndWetlands": waterandwetlands,
+        "from_lumber_to_pulp": from_lumber_to_pulp,
     }
 
     # Likert-slider arvot
@@ -2368,10 +2492,164 @@ def submit_responses_callback(
     # Likert “cannot answer” flagit (0/1)
     cannot_flags_dict = {q["id"]: int(flag) for q, flag in zip(likert_questions, cannot_flags)}
 
-    # Tallenna kantaan
+
+    # 1. Check land cover sum == 100
+    landcover_sum = (
+            (protwoodlands or 0)
+            + (unprotectedforest or 0)
+            + (wildland or 0)
+            + (farmland or 0)
+            + (developed or 0)
+            + (waterandwetlands or 0)
+    )
+
+    total_enduse = construction_multistory_val + construction_single_val + manufacturing_val + packaging_val + other_val + other_construction_val +non_res_construction_val
+    total_lumber_logging = (logging_intensity * (protwoodlands + unprotectedforest) / 100 * 40000) * (lumbershare/100)
+    from_lumber_to_pulp = total_lumber_logging * 0.333
+    print(total_lumber_logging)
+    lumber_supply = round(total_lumber_logging + import_lumber + recovery_timber - from_lumber_to_pulp, -2)
+
+
+    diff = (lumber_supply or 0) - (total_enduse or 0)
+
+    if landcover_sum != 100:
+        return (html.Div("❌ Land cover values must sum to 100%",
+                        style={"color": "red", "fontWeight": "bold", "marginTop": "10px"}),
+                         False
+                         )
+
+
+    # 2. Check fuel + pulp + lumber share == 100
+    share_sum = (fuelshare or 0) + (papershare or 0) + (lumbershare or 0)
+
+    if share_sum != 100:
+        return (html.Div("❌ Fuelwood, pulpwood and sawnwood shares must sum to 100%",
+                        style={"color": "red", "fontWeight": "bold", "marginTop": "10px"}),
+                        False
+                        )
+
+    # 3. Check supply = demand
+    if abs(diff) > 1000:
+        return (html.Div(f"❌ Supply ({lumber_supply:,.0f}) and demand ({total_enduse:,.0f}) differ by more than 1,000 mcf. Fix the inputs.",
+        style={"color": "red", "fontWeight": "bold", "marginTop": "10px"}),
+                False)
+
+
+
+    # --- Validation passed → Save ---
+    if n_clicks is None or n_clicks == 0:
+        raise dash.exceptions.PreventUpdate
+
+    # Validation checks...
     save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict)
 
-    return "✅ Responses submitted successfully!"
+    return html.Div(), True  # shows the popup
+
+
+def check_email(email, db_path="data.db"):
+    """Hakee käyttäjän tiedot SQLite-kannasta sähköpostin perusteella."""
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT email FROM responses WHERE email = ?", (email,))
+    row = cursor.fetchone()
+    conn.close()
+
+
+    if row:
+        # Jos email löytyy, haetaan kaikki tiedot
+        return fetch_user_data(email, db_path)
+    else:
+        # Jos ei löydy, palautetaan app_layout (tai mikä tahansa oletus)
+        return survey_layout
+
+
+def fetch_user_data(email, db_path="data.db"):
+    """Hakee käyttäjän tiedot SQLite-kannasta sähköpostin perusteella ja dekoodaa JSON-kentät."""
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM responses WHERE email = ?", (email,))
+    row = cursor.fetchone()
+    conn.close()
+
+    if not row:
+        return None
+
+    data = dict(row)
+
+    # JSON-dekoodaus automaattisesti
+    for key, value in data.items():
+        if isinstance(value, str):
+            try:
+                data[key] = json.loads(value)
+            except:
+                pass
+
+    return data
+
+def populate_form_from_db(db_data, likert_questions):
+    """
+    Luo yhden dictin, jossa kaikki oletusarvot survey-kentille.
+    db_data = fetch_user_data(email) tulos (dict tai None)
+    """
+
+    if not db_data:
+        db_data = {}
+
+    defaults = {
+        "lumbershare": db_data.get("lumbershare"),
+        "papershare": db_data.get("papershare"),
+        "fuelshare": db_data.get("fuelshare"),
+        "import_lumber": db_data.get("import_lumber"),
+        "import_paper": db_data.get("import_paper"),
+        "construction_multistory_val": db_data.get("construction_multistory_val"),
+        "construction_single_val": db_data.get("construction_single_val"),
+        "manufacturing_val": db_data.get("manufacturing_val"),
+        "packaging_val": db_data.get("packaging_val"),
+        "other_val": db_data.get("other_val"),
+        "other_construction_val": db_data.get("other_construction_val"),
+        "non_res_construction_val": db_data.get("non_res_construction_val"),
+        "recovery_timber": db_data.get("recovery_timber"),
+        "logging_intensity": db_data.get("logging_intensity"),
+
+        # 🔹 Nämä listat/dictit voivat olla JSON — varmistetaan dekoodaus
+        "state_checklist": db_data.get("state_checklist") or [],
+        "organization_type": db_data.get("organization_type"),
+        "organization_type_other": db_data.get("organization_type_other"),
+        "prof_position": db_data.get("prof_position"),
+        "prof_position_other": db_data.get("prof_position_other"),
+        "years_experience": db_data.get("years_experience"),
+
+        # Kartat / alueet
+        "protWoodlands": db_data.get("protWoodlands"),
+        "unprotectedForest": db_data.get("unprotectedForest"),
+        "wildlands": db_data.get("wildlands"),
+        "farmland": db_data.get("farmland"),
+        "developed": db_data.get("developed"),
+        "waterAndWetlands": db_data.get("waterAndWetlands"),
+
+        "from_lumber_to_pulp": db_data.get("from_lumber_to_pulp"),
+    }
+
+    # 🔥 Lisätään myös kaikki Likert-kysymykset automaattisesti
+    for q in likert_questions:
+        q_id = q["id"]
+        defaults[q_id] = db_data.get(q_id)
+
+        # mahdollinen *_cannot_answer
+        cannot_key = f"{q_id}_cannot_answer"
+        defaults[cannot_key] = db_data.get(cannot_key, 0)
+
+    return defaults
+
+
+def get_default(defaults, key):
+    """Palauttaa DB-arvon jos se ei ole None, muuten DEFAULTS-arvon"""
+    val = defaults.get(key)
+    return val if val is not None else DEFAULTS[key]
+
 
 
 if __name__ == "__main__":

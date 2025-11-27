@@ -87,6 +87,7 @@ DEFAULTS = {
     "employment_conditions_cannot_answer": 0,
     "training_development_cannot_answer": 0,
     "community_engagement_cannot_answer": 0,
+
     }
 
 
@@ -99,8 +100,39 @@ def create_database():
     CREATE TABLE IF NOT EXISTS responses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        email TEXT,
+        email TEXT UNIQUE,
 
+        -- Monivalinnat (JSON)
+        state_checklist TEXT,
+        organization_type TEXT,
+        organization_type_other TEXT,
+        prof_position TEXT,
+        prof_position_other TEXT,
+        years_experience INTEGER,
+
+        -- Muuttujat / kuvaajien arvot
+        protWoodlands REAL,
+        unprotectedForest REAL,
+        wildlands REAL,
+        farmland REAL,
+        developed REAL,
+        waterAndWetlands REAL,
+        lumbershare REAL,
+        papershare REAL,
+        from_lumber_to_pulp REAL,
+        fuelshare REAL,
+        import_lumber REAL,
+        import_paper REAL,
+        construction_multistory_val REAL,
+        construction_single_val REAL,
+        manufacturing_val REAL,
+        packaging_val REAL,
+        other_val REAL,
+        other_construction_val REAL,
+        non_res_construction_val REAL,
+        recovery_timber REAL,
+        logging_intensity REAL,
+        
         -- Likert-kysymykset
         regional_economy INTEGER,
         local_owners INTEGER,
@@ -111,46 +143,16 @@ def create_database():
         employment_conditions INTEGER,
         training_development INTEGER,
         community_engagement INTEGER,
-
-        -- Monivalinnat (JSON)
-        organization TEXT,
-        role TEXT,
-        states TEXT,
-
-        -- Muuttujat / kuvaajien arvot
-        protWoodlands REAL,
-        unprotectedForest REAL,
-        wildlands REAL,
-        farmland REAL,
-        developed REAL,
-        waterAndWetlands REAL,
-        woodlands_area REAL,
-        wildlands_area REAL,
-        lumber REAL,
-        lumbershare REAL,
-        paper REAL,
-        papershare REAL,
-        from_lumber_to_pulp REAL,
-        fuelwood REAL,
-        fuelshare REAL,
-        import_lumber REAL,
-        import_paper REAL,
-        construction_multistory REAL,
-        construction_multistory_val REAL,
-        construction_single REAL,
-        construction_single_val REAL,
-        manufacturing REAL,
-        manufacturing_val REAL,
-        packaging REAL,
-        packaging_val REAL,
-        other REAL,
-        other_val REAL,
-        other_construction REAL,
-        other_construction_val REAL,
-        non_res_construction REAL,
-        non_res_construction_val REAL,
-        recovery_timber REAL,
-        logging_intensity REAL,
+        
+        regional_economy_cannot_answer INTEGER,
+        local_owners_cannot_answer INTEGER,
+        carbon_substitution_cannot_answer INTEGER,
+        carbon_storage_cannot_answer INTEGER,
+        biodiversity_cannot_answer INTEGER,
+        local_sourcing_cannot_answer INTEGER,
+        employment_conditions_cannot_answer INTEGER,
+        training_development_cannot_answer INTEGER,
+        community_engagement_cannot_answer INTEGER,
         
         reset_btn_1 INTEGER,
         reset_btn_2 INTEGER
