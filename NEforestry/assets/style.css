@@ -1,0 +1,16 @@
+.top-item {
+    padding: 4px 0;
+    border-bottom: 3px solid black;
+}
+
+.line-item {
+    padding: 4px 0;
+    border-bottom: 3px double black;
+}
+
+.bottom-line {
+    padding: 4px 0;
+    border-top: 1px solid black;     /* single line above */
+    border-bottom: 3px double black; /* double line below */
+    font-weight: bold;
+}

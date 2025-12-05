@@ -1,0 +1,81 @@
+def update_all_charts(*vals):
+    # yhdistetään automaattisesti Input-arvot järjestyksessä INPUT_ORDERiin
+    data = dict(zip(INPUT_ORDER, vals))
+
+    total_logging = data["logging_intensity"] * data["woodlands"] * 1000
+    data["lumber"] = total_logging * (data["lumbershare"] / 100)
+    data["paper"] = total_logging * (data["papershare"] / 100)
+    data["fuelwood"] = total_logging * (data["fuelshare"] / 100)
+    data["lumber_total"] = data["lumber"] + data["import_lumber"] + data["recovery_timber"]
+    data["from_lumber_to_pulp"] = 0.333 * data["lumber"]
+    # Capacity status
+    total_shares = data["lumbershare"] + data["papershare"] + data["fuelshare"]
+    if abs(total_shares - 100) > 0.01:
+        bar_fig = dash.no_update
+        sankey_fig = dash.no_update
+        data = dash.no_update
+        status_text = f"{total_shares:.0f}% ❌ Must equal 100%"
+        status_style = {"color": "red"}
+
+    else:
+        bar_fig = make_stacked_bar(data)
+        sankey_fig = make_sankey(data)
+        status_text = f"{total_shares:.0f}% ✅ Balanced"
+        status_style = {"color": "green"}
+
+    total_logging_text = f"{total_logging:,.0f} (thousand ft³)"
+
+    # Palautetaan kaikki outputs oikeassa järjestyksessä
+    return data, sankey_fig, bar_fig, status_text, status_style, total_logging_text
+
+
+@app.callback(
+    [
+        Output("model-data", "data", allow_duplicate=True),
+        Output("sankey", "figure", allow_duplicate=True),
+        Output("enduse-status", "children"),
+        Output("enduse-status", "style"),
+    ],
+    [Input(k, "value") if not k.endswith("_val") and k not in ["lumber","paper","fuelwood","from_lumber_to_pulp"]
+     else Input(k, "data") for k in INPUT_ORDER],
+    prevent_initial_call="initial_duplicate",
+)
+def update_enduse(*vals):
+    data = dict(zip(INPUT_ORDER, vals))
+    lumber_to_pulp = data["from_lumber_to_pulp"]
+    if not data:
+        raise dash.exceptions.PreventUpdate
+    total_logging = data["logging_intensity"] * data["woodlands"] * 1000
+    data["lumber"] = total_logging * (data["lumbershare"] / 100)
+
+    print(data["lumber"])
+    print(data["import_lumber"])
+    lumber_demand = data["lumber"] + data["import_lumber"] - data["from_lumber_to_pulp"]
+    print(lumber_demand)
+    #total = constr_multi + constr_single + manuf + pack + other + other_constr
+
+    # Päivitetään vain end-use osuudet
+    data["construction_multistory_val"] = (data["construction_multistory"] / 100) * lumber_demand
+    data["construction_single_val"] = data["construction_single"] / 100 * lumber_demand
+    data["manufacturing_val"] = data["manufacturing"] / 100 * lumber_demand
+    data["packaging_val"] = data["packaging"] / 100 * lumber_demand
+    data["other_val"] = data["other"] / 100 * lumber_demand
+    data["other_construction_val"] = data["other_construction"] / 100 * lumber_demand
+
+    total = data["construction_multistory"] + data["construction_single"] + data["manufacturing"] + data["packaging"] + data["other"] + data["other_construction"]
+    total_val = data["construction_multistory_val"] + data["construction_single_val"] + data["manufacturing_val"] + data["packaging_val"] + data["other_val"] + data["other_construction_val"]
+    print(total_val)
+    print(data["from_lumber_to_pulp"])
+    # Validoi prosentti ja anna väri/status tekstinä
+    if abs(total - 100) > 0.01:
+        data = dash.no_update
+        sankey_fig = dash.no_update
+        enduse_text = f"{total:.0f}% ❌ Must equal 100%"
+        enduse_style = {"color": "red"}
+
+    else:
+        sankey_fig = make_sankey(data)
+        enduse_text = f"{total:.0f}% ✅ Balanced"
+        enduse_style = {"color": "green"}
+
+    return data, sankey_fig, enduse_text, enduse_style
