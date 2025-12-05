@@ -796,7 +796,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             # Vasemmalla: DAQ numeric inputs 2x3 + reset button
             html.Div([
                 html.Div(id="share-warning-land", children="✅ Shares sum to 100%",
-                         style={"color": "green", "marginTop": "10px"}),
+                         style={"color": "green", "fontWeight": "bold", "marginBottom": "10px"}),
 
                 html.Div([
                     # Column 1
@@ -1065,7 +1065,32 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
         "marginTop": "30px"
     }),
 
+
+
         html.Div([
+
+                html.Div([
+        html.Div("Value difference", style={"fontWeight": "bold", "marginBottom": "5px"}),
+
+        html.Div(
+            style={
+                "width": "200px",
+                "height": "20px",
+                "background": "linear-gradient(to right, red, #b4b4b4, lime)",
+                "border": "1px solid #aaa",
+                "borderRadius": "4px",
+            }
+        ),
+
+        html.Div(
+            [
+                html.Span("Lower", style={"color": "red", "marginRight": "140px"}),
+                html.Span("Higher", style={"color": "green"}),
+            ],
+            style={"fontSize": "12px", "marginTop": "4px"},
+        ),
+    ], style={"marginBottom": "20px"}),  # vähän väliä ennen kuvaa
+
             dcc.Graph(id="sankey",
                 figure=sankey_fig if sankey_fig else make_sankey(form_defaults),
                       config={"displayModeBar": False})
@@ -2846,8 +2871,8 @@ def update_forest_chart(wild, prot, unprot, farm, dev, water):
     values_list = [wild or 0, prot or 0, unprot or 0, farm or 0, dev or 0, water]
     total = sum(values_list)
     if round(total, 1) != 100:
-        warning = f"⚠️ The shares must sum to 100% (now {total:.1f}%)."
-        return dash.no_update, warning, {"color": "red", "fontWeight": "bold"}
+        warning = f"⚠️ The shares must sum to 100% (now {total:.1f}%,)."
+        return dash.no_update, warning, {"color": "red", "fontWeight": "bold", "marginBottom": "10px"}
     else:
         values = {
             "wildlands": wild,
@@ -2857,9 +2882,10 @@ def update_forest_chart(wild, prot, unprot, farm, dev, water):
             "developed": dev,
             "waterAndWetlands": water
         }
+        warning = f"✅ Shares sum to 100%",
 
         fig = make_stacked_bar(values)
-        return fig, "✅ Shares sum to 100%", {"color": "green", "fontWeight": "bold"}
+        return fig, warning, {"color": "green", "fontWeight": "bold", "marginBottom": "10px"}
 
 
 # Callback to disable slider if "Cannot answer" is on
