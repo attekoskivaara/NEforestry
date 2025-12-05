@@ -18,3 +18,10 @@ __pycache__/
 error.log
 server.log
 
+# databases (ettei sekoita vahingossa harjoitteludatoja ja oikeita datoja)
+data.db
+users.db
+
+# databases (ettei sekoita vahingossa harjoitteludatoja ja oikeita datoja)
+data.db
+users.db
