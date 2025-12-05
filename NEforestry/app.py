@@ -10,7 +10,7 @@ import json
 import hashlib
 from flask import session, redirect
 import datetime
-
+import os
 
 def format_question(question):
     if "bold" in question and question["bold"] in question["text"]:
@@ -204,8 +204,20 @@ server.secret_key = "supersecretkey123"
 # app = Dash(__name__)
 app.title = "Vision for New England Forest Survey"
 
-USERS_DB_FILE = "/home/hulicupter/flask_app/NEforestry/users.db"
+# Tarkistetaan ympäristö
+ENV = os.getenv("FLASK_ENV", "development")  # oletus development
 
+if ENV == "production":
+    landcover_data = "/home/hulicupter/flask_app/NEforestry/landcover_data_031125.csv"
+else:
+    landcover_data = "landcover_data_031125.csv"
+
+if ENV == "production":
+    USERS_DB_FILE = "/home/hulicupter/flask_app/NEforestry/users.db"
+    DATA_DB_FILE = "/home/hulicupter/flask_app/NEforestry/data.db"
+else:
+    USERS_DB_FILE = "users.db"
+    DATA_DB_FILE = "data.db"
 
 
 def render_question(question):
@@ -404,7 +416,7 @@ def make_stacked_bar(values):
     }
     """
     # Ladataan historiadata
-    df = pd.read_csv("/home/hulicupter/flask_app/NEforestry/landcover_data_031125.csv", sep=None, engine="python")
+    df = pd.read_csv(landcover_data, sep=None, engine="python")
 
     categories = ["wildlands", "protWoodlands", "unprotectedForest", "farmland", "developed", "waterAndWetlands"]
     colors = ["#33691E", "#2E7D32", "#4CAF50", "#FBC02D", "#D32F2F", "#9E9E9E"]
@@ -1963,7 +1975,7 @@ def ensure_user_defaults(email):
         "prof_position_other"
     ]
 
-    conn = sqlite3.connect("/home/hulicupter/flask_app/NEforestry/data.db")
+    conn = sqlite3.connect(DATA_DB_FILE)
     c = conn.cursor()
 
     # Tarkistetaan onko käyttäjä jo olemassa
@@ -2107,7 +2119,7 @@ def calculate_derived_values(data):
 )
 def logout(n_clicks, email):
     if n_clicks:
-        conn = sqlite3.connect("/home/hulicupter/flask_app/NEforestry/data.db")
+        conn = sqlite3.connect(DATA_DB_FILE)
         c = conn.cursor()
 
         c.execute("""
@@ -2167,7 +2179,7 @@ def reset_defaults(n_clicks):
 
 
 def increment_reset_counter(email, column):
-    conn = sqlite3.connect("/home/hulicupter/flask_app/NEforestry/data.db")
+    conn = sqlite3.connect(DATA_DB_FILE)
     c = conn.cursor()
     print("+ increment")
     print(column)
@@ -2182,7 +2194,7 @@ def increment_reset_counter(email, column):
 
 
 def increment_login_count(user_email):
-    conn = sqlite3.connect("/home/hulicupter/flask_app/NEforestry/data.db")
+    conn = sqlite3.connect(DATA_DB_FILE)
     c = conn.cursor()
 
     c.execute("""
@@ -2892,7 +2904,7 @@ def enforce_lumber_import(lumber, recovery_timber, construction_multistory, cons
 '''
 
 def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
-    conn = sqlite3.connect("/home/hulicupter/flask_app/NEforestry/data.db")
+    conn = sqlite3.connect(DATA_DB_FILE)
     c = conn.cursor()
 
     # Convert lists or dicts to JSON strings
@@ -3114,7 +3126,7 @@ def submit_responses_callback(
     return "", False, "/thankyou"
 
 
-def check_email(email, db_path="/home/hulicupter/flask_app/NEforestry/data.db"):
+def check_email(email, db_path=DATA_DB_FILE):
     """Hakee käyttäjän tiedot SQLite-kannasta sähköpostin perusteella."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -3132,7 +3144,7 @@ def check_email(email, db_path="/home/hulicupter/flask_app/NEforestry/data.db"):
         return survey_layout
 
 
-def fetch_user_data(email, db_path="/home/hulicupter/flask_app/NEforestry/data.db"):
+def fetch_user_data(email, db_path=DATA_DB_FILE):
     """Hakee käyttäjän tiedot SQLite-kannasta sähköpostin perusteella ja dekoodaa JSON-kentät."""
     conn = sqlite3.connect(db_path)
     conn.row_factory = sqlite3.Row
@@ -3265,7 +3277,7 @@ def check_user_activity(n, last_active_ts, user_email):
     # Päivitä responses-tauluun vain, jos ei liian pitkä passiivisuus
     interval_sec = 30  # päivitys 30s välein
     if inactivity_sec < 10 * 60:  # >10min pidetään passiivisena
-        conn = sqlite3.connect("/home/hulicupter/flask_app/NEforestry/data.db")
+        conn = sqlite3.connect(DATA_DB_FILE)
         c = conn.cursor()
         c.execute("""
             UPDATE responses
