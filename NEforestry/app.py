@@ -1285,22 +1285,15 @@ html.Div([
                                 min=0,
                                 max=20000,
                                 step=100,
-                                value=defaults.get("recovery_timber", (8000)),
-                                style={
-                                    "width": "120px",
-                                    "textAlign": "right"
-                                }
+                                value=defaults.get("recovery_timber", 8000),
+                                style={"width": "80px", "textAlign": "right"}
                             ),
                             dbc.InputGroupText("mcf")
                         ],
-                        style={
-                            "marginBottom": "2px",
-                            "display": "flex",
-                            "alignItems": "center",
-                            "flexWrap": "nowrap"  # estää rivin katkeamisen
-                        }
+                        className="d-flex flex-wrap justify-content-end align-items-center",
+                        style={"marginBottom": "2px"}
                     ),
-                    html.Span("Maximum 20,000", style={"fontSize": "13px"}),
+                    html.Span("Maximum 20,000", style={"fontSize": "13px", "marginLeft": "auto"}),
 
                     html.Div(id="lumber_supply_text", className="line-item", style={"marginTop": "20px", "marginBottom": "20px"}
 ),
