@@ -302,31 +302,35 @@ def make_sankey(values):
         values.get("from_lumber_to_pulp", 0)
     ]
 
+
+#6D4C41 < tumma
+#D2B48C < med. tumma
+#F5DEB3 < vaalea
     node_colors = [
         # --- SOURCES (metsät + tuonti) ---
-        "#4CAF50",  # 0: Woodlands
-        "#4CAF50",  # 1: Intensity (lähde)
-        "#4CAF50",  # 2: Wildlands
+        "#6D4C41",  # 0: Woodlands
+        "#6D4C41",  # 1: Intensity (lähde)
+        "#6D4C41",  # 2: Wildlands
 
-        "#6D4C41",  # 3: Lumber (source view)
-        "#6D4C41",  # 4: Raw material for paper (source view)
-        "#6D4C41",  # 5: Fuelwood (source view)
+        "#D2B48C",  # 3: Lumber (source view)
+        "#D2B48C",  # 4: Raw material for paper (source view)
+        "#D2B48C",  # 5: Fuelwood (source view)
 
-        "#4CAF50",  # 6: Import Lumber
-        "#4CAF50",  # 7: Import Paper
+        "#6D4C41",  # 6: Import Lumber
+        "#6D4C41",  # 7: Import Paper
 
         "#4CAF50",  # 8: Conservation (jos katsot lähteeksi)
 
         # --- PRODUCTS (massaräätälöinnin tuotetyypit) ---
-        "#81C784",  # 9: Construction multistory (tuoteryhmä)
-        "#81C784",  # 10: Construction single family
-        "#81C784",  # 11: Manufacturing
-        "#81C784",  # 12: Packaging
+        "#F5DEB3",  # 9: Construction multistory (tuoteryhmä)
+        "#F5DEB3",  # 10: Construction single family
+        "#F5DEB3",  # 11: Manufacturing
+        "#F5DEB3",  # 12: Packaging
 
         # --- END USE / OTHER USES ---
-        "#81C784",  # 13: Other
-        "#81C784",  # 14: Other Construction
-        "#81C784",  # 15: Other Construction (duplikaatti node)
+        "#F5DEB3",  # 13: Other
+        "#F5DEB3",  # 14: Other Construction
+        "#F5DEB3",  # 15: Other Construction (duplikaatti node)
 
         # --- PLACEHOLDERS ---
         "rgba(0,0,0,0)",  # 16: Paper placeholder
@@ -402,7 +406,7 @@ def make_stacked_bar(values):
         "developed": "Development",
         "farmland": "Farmland",
         "unprotectedForest": "Unprotected Forest",
-        "protWoodlands": "Protected Woodlands",
+        "protWoodlands": "Protected Forest",
         "wildlands": "Wildlands"
     }
     """
@@ -580,26 +584,10 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             ]),
 
             html.P([
-                html.Span("You can submit your responses and log out at the end of the survey.",
+                html.Span("You can submit your responses and log out at the end of the survey. You can login again using your credentials to change your answers until 31th of March 2026",
                         style={"fontWeight": "bold"}),
             ]),
 
-            html.P("The survey consists of four main sections:"),
-
-            html.Ol([
-                html.Li("Background information about you and your organization"),
-                html.Li("Questions about your views on how land cover should develop in New England"),
-                html.Li([
-                    "Questions about your views on the utilization of forest and wood products at different stages:",
-                    html.Ol([
-                        html.Li("3.1. Preferred intensity of forest harvesting in New England"),
-                        html.Li("3.2. Preferred focus of production across product groups (lumber, fiber, fuel)"),
-                        html.Li("3.3. Preferred distribution of lumber demand across different end uses"),
-                    ], style={"marginLeft": "20px", "listStyleType": "none"})  # remove default numbering
-                ]),
-                html.Li(
-                    "Questions about views on the desired future role and contributions of the forest-based sector in New England")
-            ], style={"marginLeft": "20px", "listStyleType": "decimal"})
         ], style={
             "width": "100%",
             "padding": "20px",
@@ -739,7 +727,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                 html.Span("your desired future scenario in 2060", style={"fontWeight": "bold"}),
                 "."
             ]),
-            html.P("Click 'Set everything to default' to restore initial values."),
+            html.P("Click 'Set everything to default' to restore initial values in this part of the survey."),
 
             html.P("Note: For the both graphs to update the land cover shares must sum to 100%.",
                    style={
@@ -753,7 +741,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                        "border": "1px solid #ffeeba"  # subtle border for emphasis
                    }
                    ),
-            html.P("Note: Both Unprotected Forests and Protected Woodlands can be used for forestry, and"
+            html.P("Note: Both Unprotected Forests and Protected Forests can be used for timber harvesting, and"
                    " their assigned land values influence timber production in Part 3 of the survey.",
                    style={
                        "fontSize": "16px",
@@ -1011,12 +999,23 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             ),
             " based on your preferred future situation."
         ]),
-        html.P("3.1 Timber sources in New England: Adjust the slider to reflect your average harvesting intensity in New England"
-               " forests. Additionally, set lumber and pulpwood imports to your desired levels."),
-        html.P("3.2 Timber supply by assortments: Adjust the percentages of harvests allocated to lumber, pulpwood, and fuelwood. "),
-        html.P("3.3 Lumber demand by enduse: Use the input fields below to define how the end-use distribution should"
-               " develop until 2060."),
-        html.P("Click “Set everything to default” to restore the initial values for Part 1 of the survey."),
+        html.P([
+            html.B("3.1 Timber sources in New England:"),
+            " Adjust the slider to reflect your average harvesting intensity in New England forests. "
+            "Additionally, set lumber and pulpwood imports to your desired levels."
+        ]),
+
+        html.P([
+            html.B("3.2 Timber supply by assortments:"),
+            " Adjust the percentages of harvests allocated to lumber, pulpwood, and fuelwood."
+        ]),
+
+        html.P([
+            html.B("3.3 Lumber demand by enduse:      "),
+            " Use the input fields below to define how the end-use distribution should develop until 2060."
+        ]),
+
+        html.P("Click “Set everything to default” to restore the initial values in this part of the survey."),
         html.P("Note: Product type percentages must sum up to 100%.",
                style={
                    "fontSize": "16px",
@@ -1067,14 +1066,16 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
 
 
 
-        html.Div([
+html.Div([
+    html.Div(
+    [
+        # Title ylhäällä
+        html.Div("Change from 2020", style={"fontWeight": "bold", "marginBottom": "5px"}),
 
-                html.Div([
-        html.Div("Value difference", style={"fontWeight": "bold", "marginBottom": "5px"}),
-
+        # Gradient bar
         html.Div(
             style={
-                "width": "200px",
+                "width": "250px",
                 "height": "20px",
                 "background": "linear-gradient(to right, red, #b4b4b4, lime)",
                 "border": "1px solid #aaa",
@@ -1082,23 +1083,37 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             }
         ),
 
+        # Legend text
         html.Div(
             [
-                html.Span("Lower", style={"color": "red", "marginRight": "140px"}),
-                html.Span("Higher", style={"color": "green"}),
+                html.Span("Lower", style={"color": "red", "display": "inline-block", "width": "80px", "textAlign": "left"}),
+                html.Span("Not changed", style={"color": "black", "display": "inline-block", "width": "90px", "textAlign": "center"}),
+                html.Span("Higher", style={"color": "green", "display": "inline-block", "width": "80px", "textAlign": "right"}),
             ],
-            style={"fontSize": "12px", "marginTop": "4px"},
+            style={"fontSize": "12px", "marginTop": "5px"}
         ),
-    ], style={"marginBottom": "20px"}),  # vähän väliä ennen kuvaa
+    ],
+        style={
+            "position": "absolute",   # 🔹 Absoluuttinen sijainti
+            "top": "60px",           # 🔹 Nosta legendiä Sankeyn päälle
+            "left": "0",              # 🔹 Vasempaan reunaan
+            "zIndex": "10",           # 🔹 Varmistaa, että se näkyy päällekkäin
+            "background": "rgba(255,255,255,0.8)",  # 🔹 Hieman läpinäkyvä tausta
+            "padding": "5px",
+            "borderRadius": "4px",
+        }),
+
 
             dcc.Graph(id="sankey",
                 figure=sankey_fig if sankey_fig else make_sankey(form_defaults),
                       config={"displayModeBar": False})
         ], style={
+            "position": "relative",
+            "marginTop": "40px",
             "paddingTop": "60px",
             "gap": "20px",
             "margin": "auto",
-            "maxWidth": "1400px",
+            "maxWidth": "1500px",
             "width": "100%",
 
         }),
@@ -1158,7 +1173,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
 
 
                 html.Label([
-                    html.Span("+ Import pulpwood* ", style={"fontWeight": "bold"}),
+                    html.Span("+ Import wood for pulp* ", style={"fontWeight": "bold"}),
                     html.Span(f"(in 2020: {DEFAULTS['import_paper']:,})", style={"fontWeight": "normal"})
                 ]),
                 dbc.InputGroup(
@@ -1385,9 +1400,9 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             html.Div([
                 html.H4("3.3. Lumber demand by enduse", style={'fontWeight': 'bold', "marginBottom": "10px"}),
                 html.Div([
-                    # Construction (multistory)
+                    # Construction (multisfamily)
                     html.Label([
-                        html.Span("Construction (multistory) ", style={"fontWeight": "bold"}),
+                        html.Span("Construction (multisfamily) ", style={"fontWeight": "bold"}),
                         html.Span(
                             "definition ",
                             title=(
@@ -1716,7 +1731,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                     "flex": "1",
                     "display": "flex",
                     "flexDirection": "column",
-                    "justifyContent": "flex-start",  # <--- FIX
+                    "justifyContent": "flex-start",
                     "width": "100%",
                     "minWidth": "0",
                     "border": "1px solid #ddd",
@@ -1791,7 +1806,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
         "display": "grid",
         "gridTemplateColumns": "repeat(4, minmax(0, 1fr))",
         "margin": "auto",
-        "maxWidth": "1400px",
+        "maxWidth": "1600px",
         "width": "100%",
         "marginTop": "50px",
     }),
@@ -1857,7 +1872,25 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             "gridTemplateColumns": "1fr 1fr 1fr",
             "gap": "20px",
             "width": "100%"
-        })
+        }),
+
+        html.Hr(style={
+            "border": "none",  # remove default border
+            "borderTop": "2px solid #ccc",  # grey line
+            "margin": "20px 0"  # vertical spacing
+        }),
+
+        html.Div([
+            html.Label("Voluntary: Please let us know about your experience with the survey", style={"fontWeight": "bold"}),
+
+        dcc.Textarea(
+            id="general_comment",
+            value=defaults.get("general_comment", ""),
+            placeholder="Enter your comments here...",
+            style={"width": "100%", "height": 150},
+            ),
+        ])
+
 
     ], style={
         "display": "grid",
@@ -1997,7 +2030,8 @@ def ensure_user_defaults(email):
 
     text_boxes = [
         "organization_type_other",
-        "prof_position_other"
+        "prof_position_other",
+        "general_comment",
     ]
 
     conn = sqlite3.connect(DATA_DB_FILE)
@@ -2014,6 +2048,7 @@ def ensure_user_defaults(email):
             "state_checklist",
             "organization_type",
             "organization_type_other",
+            "general_comment",
             "prof_position",
             "prof_position_other",
             "years_experience",
@@ -2101,13 +2136,13 @@ def display_page(pathname, email, logged_in):
     if pathname == "/survey":
         if logged_in:
             db_data = fetch_user_data(email)
-
+            print(db_data)
             # 1️⃣ Lasketaan derived values
             data_with_calcs = calculate_derived_values(db_data)
 
             # 2️⃣ Form defaults (Likertit, muut inputit)
             form_defaults = populate_form_from_db(data_with_calcs, likert_questions)
-
+            print(form_defaults)
             # 3️⃣ Chartit heti laskettujen arvojen perusteella
             sankey_fig = make_sankey(data_with_calcs)
             bar_fig = make_stacked_bar(data_with_calcs)
@@ -2997,6 +3032,7 @@ def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
     State("state-checklist", "value"),
     State("organization_type", "value"),
     State("organization_type_other", "value"),
+    State("general_comment", "value"),
     State("prof_position", "value"),
     State("prof_position_other", "value"),
     State("years_experience", "value"),
@@ -3035,6 +3071,7 @@ def submit_responses_callback(
     state_checklist,
     organization_type,
     organization_type_other,
+    general_comment,
     prof_position,
     prof_position_other,
     years_experience,
@@ -3045,6 +3082,7 @@ def submit_responses_callback(
     developed,
     waterandwetlands,
     from_lumber_to_pulp,
+
 
 
     *args
@@ -3087,6 +3125,7 @@ def submit_responses_callback(
         "developed": developed,
         "waterAndWetlands": waterandwetlands,
         "from_lumber_to_pulp": from_lumber_to_pulp,
+        "general_comment": general_comment,
     }
 
     # Likert-slider arvot
@@ -3145,7 +3184,7 @@ def submit_responses_callback(
     # --- Validation passed → Save ---
     if n_clicks is None or n_clicks == 0:
         raise dash.exceptions.PreventUpdate
-
+    print(user_inputs)
     # Validation checks...
     save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict)
     session.clear()
@@ -3184,7 +3223,6 @@ def fetch_user_data(email, db_path=DATA_DB_FILE):
         return None
 
     data = dict(row)
-
     # JSON-dekoodaus automaattisesti
     for key, value in data.items():
         if isinstance(value, str):
@@ -3200,7 +3238,6 @@ def populate_form_from_db(db_data, likert_questions):
     Luo yhden dictin, jossa kaikki oletusarvot survey-kentille.
     db_data = fetch_user_data(email) tulos (dict tai None)
     """
-
     if not db_data:
         db_data = {}
 
@@ -3224,6 +3261,7 @@ def populate_form_from_db(db_data, likert_questions):
         "state_checklist": db_data.get("state_checklist") or [],
         "organization_type": db_data.get("organization_type"),
         "organization_type_other": db_data.get("organization_type_other"),
+        "general_comment": db_data.get("general_comment") or "",
         "prof_position": db_data.get("prof_position"),
         "prof_position_other": db_data.get("prof_position_other"),
         "years_experience": db_data.get("years_experience"),
@@ -3237,6 +3275,7 @@ def populate_form_from_db(db_data, likert_questions):
         "waterAndWetlands": db_data.get("waterAndWetlands"),
 
         "from_lumber_to_pulp": db_data.get("from_lumber_to_pulp"),
+
     }
 
     # 🔥 Lisätään myös kaikki Likert-kysymykset automaattisesti

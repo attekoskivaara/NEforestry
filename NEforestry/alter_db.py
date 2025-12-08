@@ -1,15 +1,18 @@
 import sqlite3
 
-DB_PATH = "data.db"
+  #  "state_checklist": "TEXT",
+  #  "organization_type": "TEXT",
+  #  "organization_type_other": "TEXT",
+  #  "prof_position": "TEXT",
+  #  "prof_position_other": "TEXT",
+  #  "years_experience": "INTEGER"
+
+
+DB_PATH = "/home/hulicupter/flask_app/NEforestry/data.db"
 
 # Kaikki lisättävät sarakkeet {nimi: SQL-tyyppi}
 NEW_COLUMNS = {
-    "state_checklist": "TEXT",
-    "organization_type": "TEXT",
-    "organization_type_other": "TEXT",
-    "prof_position": "TEXT",
-    "prof_position_other": "TEXT",
-    "years_experience": "INTEGER"
+    "general_comment": "TEXT"
 }
 
 def column_exists(cursor, table, column):
