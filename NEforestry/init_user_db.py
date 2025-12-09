@@ -51,5 +51,7 @@ if __name__ == "__main__":
     add_user("atte.koskivaara@luke.fi", "security")
     add_user("aliisa.koivisto@gmail.com", "HildaHelvi")
     add_user("katja.lahtinen@luke.fi", "umass2025")
+    add_user("vision2060@umass.edu", "vision2060")
+    add_user("clouston@umass.edu", "mountsugarloaf")
 
 
