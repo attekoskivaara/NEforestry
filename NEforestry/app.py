@@ -1825,7 +1825,7 @@ html.Div([
 
         html.P(""),
         html.H3("In your vision, how important is it that...", style={"gridColumn": "1 / -1", "marginBottom": "20px"}),
-        html.H5("(1 = not at all important, 2 = slightly important, 3 = moderately important, 4 = imporant, 5 = very important)"),
+     #   html.H5("(1 = not at all important, 2 = slightly important, 3 = moderately important, 4 = imporant, 5 = very important)"),
         # Kysymykset gridissä
         html.Div([
 html.Div([
@@ -1840,7 +1840,7 @@ html.Div([
             value=defaults.get(q["id"], 3),
             marks={
                 1: {
-                    "label": "Totally disagree",
+                    "label": "Not at all important",
                     "style": {
                         "whiteSpace": "normal",
                         "textAlign": "center",
@@ -1854,7 +1854,7 @@ html.Div([
                 6: "6",
                 7: "7",
                 8: "8",
-                9: "Totally agree"
+                9: "Very important"
             },
             tooltip={"placement": "top", "always_visible": True},
             updatemode='drag'
