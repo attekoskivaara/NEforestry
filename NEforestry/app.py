@@ -486,7 +486,7 @@ login_layout = dbc.Container(
         dbc.Col(
             dbc.Card(
                 dbc.CardBody([
-                    html.H3("Survey: VISION 2050 for New England Forests", className="text-center mb-4"),
+                    html.H3("Survey: VISION 2060 for New England Forests", className="text-center mb-4"),
                     dbc.Input(id="login-email", placeholder="Email", type="email", className="mb-3"),
                     dbc.Input(id="login-password", placeholder="Password", type="password", className="mb-3"),
                     dbc.Button("Login", id="login-btn", color="primary", className="w-100"),
