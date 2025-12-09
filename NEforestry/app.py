@@ -202,7 +202,7 @@ server = app.server
 server.secret_key = "supersecretkey123"
 
 # app = Dash(__name__)
-app.title = "Vision for New England Forest Survey"
+app.title = "VISION 2060 for New England Forests"
 
 # Tarkistetaan ympäristö
 ENV = os.getenv("FLASK_ENV", "development")  # oletus development
@@ -486,7 +486,7 @@ login_layout = dbc.Container(
         dbc.Col(
             dbc.Card(
                 dbc.CardBody([
-                    html.H3("Vision for New England Forest Survey 2060 Login", className="text-center mb-4"),
+                    html.H3("Survey: VISION 2050 for New England Forests", className="text-center mb-4"),
                     dbc.Input(id="login-email", placeholder="Email", type="email", className="mb-3"),
                     dbc.Input(id="login-password", placeholder="Password", type="password", className="mb-3"),
                     dbc.Button("Login", id="login-btn", color="primary", className="w-100"),
@@ -549,7 +549,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
   #  dcc.Store(id="login-state", data=False),
 
         html.Div([
-            html.H3("Vision for New England Forest Survey 2060", style={"fontWeight": "bold", "marginBottom": "10px"}),
+            html.H3("Survey: VISION 2060 for New England Forests", style={"fontWeight": "bold", "marginBottom": "10px"}),
             html.H4("About this survey", style={"marginTop": "20px", "marginBottom": "10px"}),
 
             html.P([
@@ -729,7 +729,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             ]),
             html.P("Click 'Set everything to default' to restore initial values in this part of the survey."),
 
-            html.P("Note: For the both graphs to update the land cover shares must sum to 100%.",
+            html.P("Please note: For the both graphs to update the land cover shares must sum to 100%.",
                    style={
                        "fontSize": "16px",
                        "lineHeight": "1.4",
@@ -741,7 +741,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                        "border": "1px solid #ffeeba"  # subtle border for emphasis
                    }
                    ),
-            html.P("Note: Both Unprotected Forests and Protected Forests can be used for timber harvesting, and"
+            html.P("Please note: Both Unprotected Forests and Protected Forests can be used for timber harvesting, and"
                    " their assigned land values influence timber production in Part 3 of the survey.",
                    style={
                        "fontSize": "16px",
@@ -1016,7 +1016,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
         ]),
 
         html.P("Click “Set everything to default” to restore the initial values in this part of the survey."),
-        html.P("Note: Product type percentages must sum up to 100%.",
+        html.P("Please note: Product type percentages must sum up to 100%.",
                style={
                    "fontSize": "16px",
                    "lineHeight": "1.4",
@@ -1028,7 +1028,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                    "border": "1px solid #ffeeba"  # subtle border for emphasis
                }
                ),
-        html.P("Note: Demand must match supply with an accuracy of 1,000 mcf.",
+        html.P("Please note: Demand must match supply with an accuracy of 5,000 mcf.",
                style={
                    "fontSize": "16px",
                    "lineHeight": "1.4",
@@ -1040,7 +1040,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                    "border": "1px solid #ffeeba"  # subtle border for emphasis
                }
                ),
-        html.P("Note: The unit mcf refers to thousand cubic feet of wood-based products (e.g., timber, lumber, pulpwood, and fuelwood)",
+        html.P("Please note: The unit mcf refers to thousand cubic feet of wood-based products (e.g., timber, lumber, pulpwood, and fuelwood)",
                style={
                    "fontSize": "16px",
                    "lineHeight": "1.4",
@@ -1197,7 +1197,7 @@ html.Div([
 
                 html.Div(id="timber_supply", className="bottom-line"),
                 html.P(""),
-                html.P("*Note: enter values rounded to the nearest hundred."),
+                html.P("*Please note: enter values rounded to the nearest hundred."),
 
 
             ], style={
@@ -1369,8 +1369,8 @@ html.Div([
                              style={"marginTop": "20px", "marginBottom": "20px"}),
 
                     html.P(""),
-                    html.P("*Note: Please consider your preferred long-term level, acknowledging that harvested wood cannot be allocated disproportionately to a single product category, especially over extended periods."),
-                    html.P("**Note: For recovered lumber, enter values rounded to the nearest hundred."),
+                    html.P("*Please note: Please consider your preferred long-term level, acknowledging that harvested wood cannot be allocated disproportionately to a single product category, especially over extended periods."),
+                    html.P("**Please note: For recovered lumber, enter values rounded to the nearest hundred."),
 
                     # Share status box
                     html.Div(id="share-warning", style={"fontWeight": "bold", "marginTop": "10px"})
@@ -1393,9 +1393,9 @@ html.Div([
             html.Div([
                 html.H4("3.3. Lumber demand by enduse", style={'fontWeight': 'bold', "marginBottom": "10px"}),
                 html.Div([
-                    # Construction (multisfamily)
+                    # Construction (multifamily)
                     html.Label([
-                        html.Span("Construction (multisfamily) ", style={"fontWeight": "bold"}),
+                        html.Span("Construction (multifamily) ", style={"fontWeight": "bold"}),
                         html.Span(
                             "definition ",
                             title=(
@@ -1697,7 +1697,7 @@ html.Div([
                         "borderTop": "2px solid black",  # grey line
                         "margin": "20px 0"      # vertical spacing
                     }),
-                    html.P("*Note: enter values rounded to the nearest hundred."),
+                    html.P("*Please note: enter values rounded to the nearest hundred."),
 
                     # daq.NumericInput(
                     #     id="other_construction_val",
@@ -1765,7 +1765,7 @@ html.Div([
                         "margin": "20px 0"      # vertical spacing
                     }),
                     html.P(
-                        "*Note: Supply and demand must match with an accuracy of 1,000 mcf."),
+                        "*Please note: Supply and demand must match with an accuracy of 5,000 mcf."),
 
                 ],
                     id="sd_style_box"),
@@ -1828,37 +1828,64 @@ html.Div([
         html.H5("(1 = not at all important, 2 = slightly important, 3 = moderately important, 4 = imporant, 5 = very important)"),
         # Kysymykset gridissä
         html.Div([
-            html.Div([
-                format_question(q),  # your bolded text
+html.Div([
+    format_question(q),
 
-                html.Div(
-                    dcc.Slider(
-                        id={'type': 'importance-slider', 'index': q["id"]},  # 🔑 käytetään tekstipohjaista ID:tä
-                        min=1,
-                        max=5,
-                        step=1,
-                        value=defaults.get(q["id"], 3),
-                        marks={j: str(j) for j in range(1, 6)},
-                        tooltip={"placement": "bottom", "always_visible": True},
-                        updatemode='drag'
-                    ),
-                    style={"width": "100%"}
-                ),
+    html.Div(
+        dcc.Slider(
+            id={'type': 'importance-slider', 'index': q["id"]},
+            min=1,
+            max=9,
+            step=1,
+            value=defaults.get(q["id"], 3),
+            marks={
+                1: {
+                    "label": "Totally disagree",
+                    "style": {
+                        "whiteSpace": "normal",
+                        "textAlign": "center",
+                        "maxWidth": "60px",   # << riittävä tila monirivelle
+                      #  "marginLeft": "-20px" # << hienosäätö: siirtää labelia vasemmalle jotta osuu numeron päälle
+                    }},
+                2: "2",
+                3: "3",
+                4: "4",
+                5: "5",
+                6: "6",
+                7: "7",
+                8: "8",
+                9: "Totally agree"
+            },
+            tooltip={"placement": "top", "always_visible": True},
+            updatemode='drag'
+        ),
+        style={"width": "100%"}
+    ),
 
-                daq.BooleanSwitch(
-                    id={'type': 'cannot-answer', 'index': q["id"]},
-                    on=bool(defaults.get(f"{q['id']}_cannot_answer", 0)),
-                    label="Cannot answer",
-                    labelPosition="right",
-                    style={"marginTop": "5px"}
-                )
-            ], style={
-                "display": "flex",
-                "flexDirection": "column",
-                "alignItems": "flex-start",
-                "marginBottom": "20px",
-                "width": "100%"
-            })
+    # ⭐ Keskitetään BooleanSwitch sliderin alle ⭐
+    html.Div(
+        daq.BooleanSwitch(
+            id={'type': 'cannot-answer', 'index': q["id"]},
+            on=bool(defaults.get(f"{q['id']}_cannot_answer", 0)),
+            label="Cannot answer",
+            labelPosition="right",
+        ),
+        style={
+            "marginTop": "10px",
+            "display": "flex",
+            "justifyContent": "center",  # <-- Keskittää vaakasuunnassa
+            "width": "100%"
+        }
+    ),
+
+], style={
+    "display": "flex",
+    "flexDirection": "column",
+    "alignItems": "flex-start",
+    "marginBottom": "20px",
+    "width": "100%"
+})
+
             for q in likert_questions
         ], style={
             "display": "grid",
@@ -1867,7 +1894,19 @@ html.Div([
             "width": "100%"
         }),
 
-        html.Hr(style={
+
+
+    ], style={
+        "display": "grid",
+        "gridTemplateColumns": "1fr",
+        "gap": "20px",
+        "margin": "auto",
+        "maxWidth": "1200px",
+        "width": "100%",
+        "marginTop": "50px"
+    }),
+
+            html.Hr(style={
             "border": "none",  # remove default border
             "borderTop": "2px solid #ccc",  # grey line
             "margin": "20px 0"  # vertical spacing
@@ -1882,10 +1921,7 @@ html.Div([
             placeholder="Enter your comments here...",
             style={"width": "100%", "height": 150},
             ),
-        ])
-
-
-    ], style={
+        ], style={
         "display": "grid",
         "gridTemplateColumns": "1fr",
         "gap": "20px",
@@ -2664,7 +2700,7 @@ def update_all_charts(*vals):
 
 
     # --- 2 End-use (loppukäyttö) ---
-    if abs(total_enduse - lumber_supply) > 1000:
+    if abs(total_enduse - lumber_supply) > 5000:
         lumber_supply_status_text = dash.no_update
         lumber_supply_status_style = dash.no_update
 
@@ -2685,7 +2721,7 @@ def update_all_charts(*vals):
         lumber_supply_status_style = {"color": "green"}
 
      # --- Sankey-päivitys vain, jos molemmat balanssissa ---
-    if abs((total_shares - 100)) <= 0.01 and abs((total_enduse - lumber_supply)) > 1000:
+    if abs((total_shares - 100)) <= 0.01 and abs((total_enduse - lumber_supply)) > 5000:
         sankey_fig = make_sankey(data)
     else:
         sankey_fig = make_sankey(data)
@@ -2729,7 +2765,7 @@ def update_all_charts(*vals):
     )
 
     diff = total_enduse - lumber_supply
-    balanced_thousand = abs(diff) <= 1000
+    balanced_thousand = abs(diff) <= 5000
 
     # --- Päivitä numerot aina ---
     if balanced_thousand:
@@ -2743,7 +2779,7 @@ def update_all_charts(*vals):
         ])
 
     else:
-        if diff > 1000:
+        if diff > 5000:
             # demand higher, supply lower
             lumber_demand_text = html.Span([
                 html.B("Lumber demand: "),
@@ -3166,8 +3202,8 @@ def submit_responses_callback(
                         )
 
     # 3. Check supply = demand
-    if abs(diff) > 1000:
-        return (html.Div(f"❌ Supply ({lumber_supply:,.0f}) and demand ({total_enduse:,.0f}) differ by more than 1,000 mcf. Fix the inputs.",
+    if abs(diff) > 5000:
+        return (html.Div(f"❌ Supply ({lumber_supply:,.0f}) and demand ({total_enduse:,.0f}) differ by more than 5,000 mcf. Fix the inputs.",
         style={"color": "red", "fontWeight": "bold", "marginTop": "10px"}),
                False,
                dash.no_update)
