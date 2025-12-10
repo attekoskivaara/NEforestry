@@ -1,5 +1,5 @@
 import sqlite3
-
+import os
   #  "state_checklist": "TEXT",
   #  "organization_type": "TEXT",
   #  "organization_type_other": "TEXT",
@@ -7,12 +7,18 @@ import sqlite3
   #  "prof_position_other": "TEXT",
   #  "years_experience": "INTEGER"
 
+ENV = os.getenv("FLASK_ENV", "development")  # oletus development
 
-DB_PATH = "/home/hulicupter/flask_app/NEforestry/data.db"
-
+if ENV == "production":
+    DATA_DB_FILE = "/home/hulicupter/flask_app/NEforestry/data.db"
+else:
+    DATA_DB_FILE = "data.db"
 # Kaikki lisättävät sarakkeet {nimi: SQL-tyyppi}
+
 NEW_COLUMNS = {
-    "general_comment": "TEXT"
+    "failed_attempts_landcover": "INTEGER DEFAULT 0",
+    "failed_attempts_share": "INTEGER DEFAULT 0",
+    "failed_attempts_supply": "INTEGER DEFAULT 0"
 }
 
 def column_exists(cursor, table, column):
@@ -22,7 +28,7 @@ def column_exists(cursor, table, column):
     return column in columns
 
 def alter_database():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(DATA_DB_FILE)
     c = conn.cursor()
 
     print("🔍 Checking for missing columns...")

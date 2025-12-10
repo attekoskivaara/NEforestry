@@ -3183,6 +3183,51 @@ def submit_responses_callback(
 
     diff = (lumber_supply or 0) - (total_enduse or 0)
 
+    # 2. Check fuel + pulp + lumber share == 100
+
+
+    failed_landcover = False
+    failed_share = False
+    failed_supply = False
+
+    # 1. Check landcover sum
+    if landcover_sum != 100:
+        failed_landcover = True
+
+    # 2. Check fuel + pulp + lumber share
+    share_sum = (fuelshare or 0) + (papershare or 0) + (lumbershare or 0)
+    if share_sum != 100:
+        failed_share = True
+
+    # 3. Check supply vs demand
+    if abs(diff) > 5000:
+        failed_supply = True
+
+    # Log to DB for each failed check
+    conn = sqlite3.connect(DATA_DB_FILE)
+    cur = conn.cursor()
+    if failed_landcover:
+        cur.execute("""
+            UPDATE responses
+            SET failed_attempts_landcover = failed_attempts_landcover + 1
+            WHERE email = ?
+        """, (user_email,))
+    if failed_share:
+        cur.execute("""
+            UPDATE responses
+            SET failed_attempts_share = failed_attempts_share + 1
+            WHERE email = ?
+        """, (user_email,))
+    if failed_supply:
+        cur.execute("""
+            UPDATE responses
+            SET failed_attempts_supply = failed_attempts_supply + 1
+            WHERE email = ?
+        """, (user_email,))
+    conn.commit()
+    conn.close()
+
+
     if landcover_sum != 100:
         return (html.Div("❌ Land cover values must sum to 100%",
                         style={"color": "red", "fontWeight": "bold", "marginTop": "10px"}),
@@ -3190,9 +3235,6 @@ def submit_responses_callback(
                          dash.no_update
                          )
 
-
-    # 2. Check fuel + pulp + lumber share == 100
-    share_sum = (fuelshare or 0) + (papershare or 0) + (lumbershare or 0)
 
     if share_sum != 100:
         return (html.Div("❌ Fuelwood, pulpwood and sawnwood shares must sum to 100%",
@@ -3384,7 +3426,6 @@ def check_user_activity(n, last_active_ts, user_email):
         print(f"User {user_email} inactive for {int(inactivity_sec/60)} min")
 
     return dash.no_update
-
 
 
 
