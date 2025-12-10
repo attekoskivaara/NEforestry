@@ -6,6 +6,9 @@ import os
   #  "prof_position": "TEXT",
   #  "prof_position_other": "TEXT",
   #  "years_experience": "INTEGER"
+#  "failed_attempts_landcover": "INTEGER DEFAULT 0",
+# "failed_attempts_share": "INTEGER DEFAULT 0",
+# "failed_attempts_supply": "INTEGER DEFAULT 0"
 
 ENV = os.getenv("FLASK_ENV", "development")  # oletus development
 
@@ -16,9 +19,7 @@ else:
 # Kaikki lisättävät sarakkeet {nimi: SQL-tyyppi}
 
 NEW_COLUMNS = {
-    "failed_attempts_landcover": "INTEGER DEFAULT 0",
-    "failed_attempts_share": "INTEGER DEFAULT 0",
-    "failed_attempts_supply": "INTEGER DEFAULT 0"
+    "state_other": "TEXT"
 }
 
 def column_exists(cursor, table, column):

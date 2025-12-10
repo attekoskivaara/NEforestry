@@ -67,7 +67,7 @@ organization_options = [
     {"label": "Design or engineering firm (e.g., structural or architectural)", "value": "design_firm"},
     {"label": "Contractor", "value": "contractor"},
     {"label": "University or Research institute", "value": "research"},
-    {"label": "Other", "value": "other"},
+    {"label": "Other...", "value": "other"},
 ]
 
 role_options = [
@@ -79,7 +79,7 @@ role_options = [
     {"label": "Researcher / academic", "value": "researcher"},
     {"label": "Designer / engineer", "value": "designer"},
     {"label": "Student", "value": "student"},
-    {"label": "Other", "value": "other"},
+    {"label": "Other...", "value": "other"},
 ]
 
 new_england_states = [
@@ -88,7 +88,8 @@ new_england_states = [
     "Massachusetts",
     "New Hampshire",
     "Rhode Island",
-    "Vermont"
+    "Vermont",
+    "Other..."
 ]
 
 TOTAL_FOREST = 31.6
@@ -625,6 +626,18 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                 value=defaults.get("state_checklist", []),
                 inline=False,
                 switch=False
+            ),
+            dcc.Input(
+                id="state_other",
+                type="text",
+                value=defaults.get("state_other", ""),
+                placeholder="Please specify if 'Other'",
+                style={
+                    "width": "400px",
+                    "height": "80px",  # lisää korkeutta (noin 3 riviä)
+                    "marginBottom": "30px",
+                    "resize": "vertical"  # sallii käyttäjän venyttää kenttää tarvittaessa
+                }
             ),
         ], style={
             "flex": "1",
@@ -2058,6 +2071,7 @@ def ensure_user_defaults(email):
     ]
 
     text_boxes = [
+        "state_other",
         "organization_type_other",
         "prof_position_other",
         "general_comment",
@@ -2075,6 +2089,7 @@ def ensure_user_defaults(email):
         columns = [
             "email",
             "state_checklist",
+            "state_other",
             "organization_type",
             "organization_type_other",
             "general_comment",
@@ -3059,6 +3074,7 @@ def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
      State("recovery_timber", "value"),
      State("logging_intensity", "value"),
     State("state-checklist", "value"),
+    State("state_other", "value"),
     State("organization_type", "value"),
     State("organization_type_other", "value"),
     State("general_comment", "value"),
@@ -3098,6 +3114,7 @@ def submit_responses_callback(
     recovery_timber,
     logging_intensity,
     state_checklist,
+    state_other,
     organization_type,
     organization_type_other,
     general_comment,
@@ -3142,6 +3159,7 @@ def submit_responses_callback(
         "recovery_timber": recovery_timber,
         "logging_intensity": logging_intensity,
         "state_checklist": state_checklist,
+        "state_other": state_other,
         "organization_type": organization_type,
         "organization_type_other": organization_type_other,
         "prof_position": prof_position,
@@ -3330,6 +3348,7 @@ def populate_form_from_db(db_data, likert_questions):
 
         # 🔹 Nämä listat/dictit voivat olla JSON — varmistetaan dekoodaus
         "state_checklist": db_data.get("state_checklist") or [],
+        "state_other": db_data.get("state_other"),
         "organization_type": db_data.get("organization_type"),
         "organization_type_other": db_data.get("organization_type_other"),
         "general_comment": db_data.get("general_comment") or "",
