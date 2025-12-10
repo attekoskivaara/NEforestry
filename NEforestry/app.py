@@ -580,7 +580,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                 "The order in which you answer the survey does not matter. However, ",
                 html.Span("your adjustments may affect other variables in other parts of the study.",
                           style={"fontWeight": "bold"}),
-                ". For example, increasing or decreasing the area of protected or unprotected forest land in Graph 1 will impact the amount of timber harvesting in New England in Graph 2."
+                " For example, increasing or decreasing the area of protected or unprotected forest land in Graph 1 will impact the amount of timber harvesting in New England in Graph 2."
             ]),
 
             html.P([
