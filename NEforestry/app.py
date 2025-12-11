@@ -77,6 +77,7 @@ role_options = [
     {"label": "Civil servant / public officer", "value": "civil_servant"},
     {"label": "Forester", "value": "forester"},
     {"label": "Researcher / academic", "value": "researcher"},
+    {"label": "Consultant", "value": "consultant"},
     {"label": "Designer / engineer", "value": "designer"},
     {"label": "Student", "value": "student"},
     {"label": "Other...", "value": "other"},
