@@ -19,7 +19,7 @@ else:
 # Kaikki lisättävät sarakkeet {nimi: SQL-tyyppi}
 
 NEW_COLUMNS = {
-    "state_other": "TEXT"
+    "organization_size": "TEXT"
 }
 
 def column_exists(cursor, table, column):

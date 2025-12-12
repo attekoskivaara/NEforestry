@@ -70,6 +70,13 @@ organization_options = [
     {"label": "Other...", "value": "other"},
 ]
 
+organization_size = [
+    "1-10",
+    "11-50",
+    "51-250",
+    "251+"
+]
+
 role_options = [
     {"label": "Logger / forestry contractor", "value": "logger"},
     {"label": "Director / manager", "value": "director"},
@@ -640,6 +647,16 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                     "resize": "vertical"  # sallii käyttäjän venyttää kenttää tarvittaessa
                 }
             ),
+
+            dbc.Label("How many people are working in your organization?"),
+            dbc.RadioItems(
+                id="organization_size",
+                options=organization_size,  # same options list as before
+                value=defaults.get("organization_size"),  # single default value
+                inline=False,
+                style={"marginBottom": "20px"}
+            ),
+
         ], style={
             "flex": "1",
             "display": "flex",
@@ -2073,6 +2090,7 @@ def ensure_user_defaults(email):
 
     text_boxes = [
         "state_other",
+        "organization_size",
         "organization_type_other",
         "prof_position_other",
         "general_comment",
@@ -2091,6 +2109,7 @@ def ensure_user_defaults(email):
             "email",
             "state_checklist",
             "state_other",
+            "organization_size",
             "organization_type",
             "organization_type_other",
             "general_comment",
@@ -3076,6 +3095,7 @@ def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
      State("logging_intensity", "value"),
     State("state-checklist", "value"),
     State("state_other", "value"),
+    State("organization_size", "value"),
     State("organization_type", "value"),
     State("organization_type_other", "value"),
     State("general_comment", "value"),
@@ -3116,6 +3136,7 @@ def submit_responses_callback(
     logging_intensity,
     state_checklist,
     state_other,
+    organization_size,
     organization_type,
     organization_type_other,
     general_comment,
@@ -3161,6 +3182,7 @@ def submit_responses_callback(
         "logging_intensity": logging_intensity,
         "state_checklist": state_checklist,
         "state_other": state_other,
+        "organization_size": organization_size,
         "organization_type": organization_type,
         "organization_type_other": organization_type_other,
         "prof_position": prof_position,
@@ -3350,6 +3372,7 @@ def populate_form_from_db(db_data, likert_questions):
         # 🔹 Nämä listat/dictit voivat olla JSON — varmistetaan dekoodaus
         "state_checklist": db_data.get("state_checklist") or [],
         "state_other": db_data.get("state_other"),
+        "organization_size": db_data.get("organization_size"),
         "organization_type": db_data.get("organization_type"),
         "organization_type_other": db_data.get("organization_type_other"),
         "general_comment": db_data.get("general_comment") or "",
