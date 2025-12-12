@@ -74,7 +74,7 @@ organization_size = [
     "1-10",
     "11-50",
     "51-250",
-    "251+"
+    "250+"
 ]
 
 role_options = [
