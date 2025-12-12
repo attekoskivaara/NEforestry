@@ -648,7 +648,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                 }
             ),
 
-            dbc.Label("How many people are working in your organization?"),
+            dbc.Label("What is the total number of employees in your organization?"),
             dbc.RadioItems(
                 id="organization_size",
                 options=organization_size,  # same options list as before
