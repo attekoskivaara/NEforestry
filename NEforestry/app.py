@@ -1,4 +1,4 @@
-from dash import Dash, dcc, html, Input, Output, State
+from dash import Dash, dcc, html, Input, Output, State, ALL
 import dash
 import plotly.graph_objects as go
 import sqlite3
@@ -11,6 +11,7 @@ import hashlib
 from flask import session, redirect
 import datetime
 import os
+
 
 def format_question(question):
     if "bold" in question and question["bold"] in question["text"]:
@@ -175,7 +176,7 @@ input_style = {
     "outline": "none"
 }
 
-likert_questions = [
+likert_questions_old = [
     {"id": "regional_economy",
      "text": "…the forest-based sector strengthens its role in regional economies, for example by generating revenues, creating jobs, and maintaining profitable operations? ",
      "bold": "strengthens its role in regional economies"},
@@ -203,6 +204,18 @@ likert_questions = [
     {"id": "community_engagement",
      "text": "…the forest-based sector actively collaborates with local communities?",
      "bold": "collaborates with local communities?"}
+]
+
+likert_questions = [
+    {"id": "regional_economy", "text": "generates benefits for regional economies?"},
+    {"id": "local_owners", "text": "sources wood primarily from local forest owners?"},
+    {"id": "carbon_substitution", "text": "promotes the use of wood as a substitute for other materials?"},
+    {"id": "carbon_storage", "text": "enhances carbon storage in forests?"},
+    {"id": "biodiversity", "text": "protects and restores biodiversity?"},
+    {"id": "local_sourcing", "text": "favors sourcing services and products from local companies?"},
+    {"id": "employment_conditions", "text": "provides stable employment and fair conditions?"},
+    {"id": "training_development", "text": "strengthens regional human capital through training?"},
+    {"id": "community_engagement", "text": "collaborates with local communities?"}
 ]
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
@@ -1854,78 +1867,28 @@ html.Div([
             "fontWeight": "bold"
         }),
 
+        html.P(
+            "Please rank the following statements from 1 (most important) to 9 (least important)."
+        ),
+
         html.P(""),
-        html.H3("In your vision, how important is it that...", style={"gridColumn": "1 / -1", "marginBottom": "20px"}),
-     #   html.H5("(1 = not at all important, 2 = slightly important, 3 = moderately important, 4 = imporant, 5 = very important)"),
-        # Kysymykset gridissä
-        html.Div([
-html.Div([
-    format_question(q),
+        html.H3("In your vision, how important is it that the forest-based sector...", style={"gridColumn": "1 / -1", "marginBottom": "20px"}),
 
-    html.Div(
-        dcc.Slider(
-            id={'type': 'importance-slider', 'index': q["id"]},
-            min=1,
-            max=9,
-            step=1,
-            value=defaults.get(q["id"], 3),
-            marks={
-                1: {
-                    "label": "Not at all important",
-                    "style": {
-                        "whiteSpace": "normal",
-                        "textAlign": "center",
-                        "maxWidth": "60px",   # << riittävä tila monirivelle
-                      #  "marginLeft": "-20px" # << hienosäätö: siirtää labelia vasemmalle jotta osuu numeron päälle
-                    }},
-                2: "2",
-                3: "3",
-                4: "4",
-                5: "5",
-                6: "6",
-                7: "7",
-                8: "8",
-                9: "Very important"
-            },
-            tooltip={"placement": "top", "always_visible": True},
-            updatemode='drag'
+
+        html.Div(
+            [
+
+                ranking_matrix(likert_questions, defaults),
+                html.Div(
+                    id="ranking-status",
+                    className="top-item",
+                    style={
+                        "marginTop": "10px",
+                        "marginBottom": "10px",
+                    },
+                ),
+            ]
         ),
-        style={"width": "100%"}
-    ),
-
-    # ⭐ Keskitetään BooleanSwitch sliderin alle ⭐
-    html.Div(
-        daq.BooleanSwitch(
-            id={'type': 'cannot-answer', 'index': q["id"]},
-            on=bool(defaults.get(f"{q['id']}_cannot_answer", 0)),
-            label="Cannot answer",
-            labelPosition="right",
-        ),
-        style={
-            "marginTop": "10px",
-            "display": "flex",
-            "justifyContent": "center",  # <-- Keskittää vaakasuunnassa
-            "width": "100%"
-        }
-    ),
-
-], style={
-    "display": "flex",
-    "flexDirection": "column",
-    "alignItems": "flex-start",
-    "marginBottom": "20px",
-    "width": "100%"
-})
-
-            for q in likert_questions
-        ], style={
-            "display": "grid",
-            "gridTemplateColumns": "1fr 1fr 1fr",
-            "gap": "20px",
-            "width": "100%"
-        }),
-
-
 
     ], style={
         "display": "grid",
@@ -1936,6 +1899,8 @@ html.Div([
         "width": "100%",
         "marginTop": "50px"
     }),
+
+
 
             html.Hr(style={
             "border": "none",  # remove default border
@@ -2146,15 +2111,6 @@ def ensure_user_defaults(email):
             "employment_conditions",
             "training_development",
             "community_engagement",
-            "regional_economy_cannot_answer",
-            "local_owners_cannot_answer",
-            "carbon_substitution_cannot_answer",
-            "carbon_storage_cannot_answer",
-            "biodiversity_cannot_answer",
-            "local_sourcing_cannot_answer",
-            "employment_conditions_cannot_answer",
-            "training_development_cannot_answer",
-            "community_engagement_cannot_answer",
             "reset_btn_1",
             "reset_btn_2",
             "submit_count",
@@ -2170,8 +2126,6 @@ def ensure_user_defaults(email):
                 values.append(email)
             elif col in likert_columns:
                 values.append(3)  # Likert default
-            elif col.endswith("_cannot_answer"):
-                values.append(0)  # cannot answer default
             elif col in text_boxes:
                 values.append("")
             elif col == "years_experience":
@@ -2200,18 +2154,23 @@ def display_page(pathname, email, logged_in):
     if pathname == "/survey":
         if logged_in:
             db_data = fetch_user_data(email)
-            print(db_data)
             # 1️⃣ Lasketaan derived values
             data_with_calcs = calculate_derived_values(db_data)
 
             # 2️⃣ Form defaults (Likertit, muut inputit)
             form_defaults = populate_form_from_db(data_with_calcs, likert_questions)
-            print(form_defaults)
+
+            ranking_defaults = {q["id"]: form_defaults.get(q["id"]) for q in likert_questions}
+
             # 3️⃣ Chartit heti laskettujen arvojen perusteella
             sankey_fig = make_sankey(data_with_calcs)
             bar_fig = make_stacked_bar(data_with_calcs)
 
-            return survey_layout(form_defaults, data_with_calcs, sankey_fig=sankey_fig, bar_fig=bar_fig)
+            return survey_layout(
+                form_defaults,
+                data_with_calcs,
+                sankey_fig=sankey_fig,
+                bar_fig=bar_fig)
         else:
             return login_layout
     elif pathname == "/thankyou":
@@ -2305,8 +2264,7 @@ def reset_defaults(n_clicks):
 def increment_reset_counter(email, column):
     conn = sqlite3.connect(DATA_DB_FILE)
     c = conn.cursor()
-    print("+ increment")
-    print(column)
+
     c.execute(f"""
         UPDATE responses
         SET {column} = COALESCE({column}, 0) + 1
@@ -2851,7 +2809,6 @@ def update_all_charts(*vals):
         data["construction_multistory_val"] = (DEFAULTS["construction_multistory_val"])
         # Recalculate dependent values
         total_logging = data["logging_intensity"] * ((data["unprotectedForest"] + data["protWoodlands"]) / 100 * 40000)
-        print(total_logging)
         data["lumber"] = total_logging * (data["lumbershare"] / 100)
         data["from_lumber_to_pulp"] = 0.333 * data["lumber"]
         data["paper"] = total_logging * (data["papershare"] / 100)
@@ -2987,14 +2944,6 @@ def update_forest_chart(wild, prot, unprot, farm, dev, water):
         return fig, warning, {"color": "green", "fontWeight": "bold", "marginBottom": "10px"}
 
 
-# Callback to disable slider if "Cannot answer" is on
-@app.callback(
-    Output({'type': 'importance-slider', 'index': dash.ALL}, 'disabled'),
-    Input({'type': 'cannot-answer', 'index': dash.ALL}, 'on')
-)
-def disable_slider(cannot_answer_values):
-    return cannot_answer_values
-
 
 
 '''
@@ -3028,7 +2977,7 @@ def enforce_lumber_import(lumber, recovery_timber, construction_multistory, cons
     return import_lumber
 '''
 
-def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
+def save_responses_to_db(user_inputs, likert_answers):
     conn = sqlite3.connect(DATA_DB_FILE)
     c = conn.cursor()
 
@@ -3037,11 +2986,14 @@ def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
         if isinstance(value, (list, dict)):
             user_inputs[key] = json.dumps(value)
 
+    for key, value in list(likert_answers.items()):
+        if isinstance(value, (list, dict)):
+            likert_answers[key] = json.dumps(value)
+
     full_data = {}
 
     full_data.update(user_inputs)
     full_data.update(likert_answers)
-    full_data.update({f"{k}_cannot_answer": v for k, v in cannot_flags_dict.items()})
 
     email = full_data.get("email")
     if not email:
@@ -3111,8 +3063,8 @@ def save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict):
      State("from_lumber_to_pulp", "data"),
 
     ] +
-    [State({'type': 'importance-slider', 'index': q["id"]}, 'value') for q in likert_questions] +
-    [State({'type': 'cannot-answer', 'index': q["id"]}, 'on') for q in likert_questions],
+    [State({'type': 'rank-radio', 'index': ALL}, 'value'),
+     State({'type': 'rank-radio', 'index': ALL}, 'id')],
     prevent_initial_call=True,
 
 )
@@ -3158,11 +3110,6 @@ def submit_responses_callback(
     if n_clicks is None or n_clicks == 0:
         raise dash.exceptions.PreventUpdate
 
-    # Erotellaan Likert-sliderit ja cannot-answer -flagit
-    num_sliders = len(likert_questions)
-    slider_values = args[:num_sliders]
-    cannot_flags = args[num_sliders:]
-
     # Käyttäjän antamat inputit (vihreä on kannan sarake)
     user_inputs = {
         "email": user_email,
@@ -3199,11 +3146,12 @@ def submit_responses_callback(
     }
 
     # Likert-slider arvot
-    likert_answers = {q["id"]: val for q, val in zip(likert_questions, slider_values)}
+    # args tulee callbackiin peräkkäin: ensin kaikki 'value'-t, sitten kaikki 'id'-t
+    radio_values = args[0]
+    radio_ids = args[1]
 
-    # Likert “cannot answer” flagit (0/1)
-    cannot_flags_dict = {q["id"]: int(flag) for q, flag in zip(likert_questions, cannot_flags)}
-
+    # yhdistetään id ja value sanakirjaksi
+    likert_answers = {rid['index']: val for rid, val in zip(radio_ids, radio_values)}
 
     # 1. Check land cover sum == 100
     landcover_sum = (
@@ -3218,7 +3166,6 @@ def submit_responses_callback(
     total_enduse = construction_multistory_val + construction_single_val + manufacturing_val + packaging_val + other_val + other_construction_val +non_res_construction_val
     total_lumber_logging = (logging_intensity * (protwoodlands + unprotectedforest) / 100 * 40000) * (lumbershare/100)
     from_lumber_to_pulp = total_lumber_logging * 0.333
-    print(total_lumber_logging)
     lumber_supply = round(total_lumber_logging + import_lumber + recovery_timber - from_lumber_to_pulp, -2)
 
 
@@ -3291,14 +3238,34 @@ def submit_responses_callback(
                False,
                dash.no_update)
 
+    # yhdistetään id ja value sanakirjaksi
+    likert_answers = {rid['index']: val for rid, val in zip(radio_ids, radio_values)}
 
+    # 🔹 Uusi uniikkius-tarkistus
+    rank_values = list(likert_answers.values())
+    if None in rank_values:
+        return (html.Div(
+            "❌ All statements must be ranked before submitting.",
+            style={"color": "red", "fontWeight": "bold", "marginTop": "10px"}
+        ),
+                False,
+                dash.no_update
+        )
+
+    if len(set(rank_values)) != len(rank_values):
+        return (html.Div(
+            "❌ Each rank must be unique. No duplicates allowed.",
+            style={"color": "red", "fontWeight": "bold", "marginTop": "10px"}
+        ),
+                False,
+                dash.no_update
+        )
 
     # --- Validation passed → Save ---
     if n_clicks is None or n_clicks == 0:
         raise dash.exceptions.PreventUpdate
-    print(user_inputs)
     # Validation checks...
-    save_responses_to_db(user_inputs, likert_answers, cannot_flags_dict)
+    save_responses_to_db(user_inputs, likert_answers)
     session.clear()
     return "", False, "/thankyou"
 
@@ -3392,14 +3359,11 @@ def populate_form_from_db(db_data, likert_questions):
 
     }
 
-    # 🔥 Lisätään myös kaikki Likert-kysymykset automaattisesti
     for q in likert_questions:
         q_id = q["id"]
-        defaults[q_id] = db_data.get(q_id)
-
-        # mahdollinen *_cannot_answer
-        cannot_key = f"{q_id}_cannot_answer"
-        defaults[cannot_key] = db_data.get(cannot_key, 0)
+        val = db_data.get(q_id)  # voi olla None jos ei tallennettu
+        defaults[q_id] = val
+    print(defaults)
 
     return defaults
 
@@ -3444,7 +3408,6 @@ function(n_intervals) {
 )
 def check_user_activity(n, last_active_ts, user_email):
     """Update DB with elapsed time every interval"""
-    print("ollaan oltu aktiivisia")
     if not last_active_ts or not user_email:
         raise dash.exceptions.PreventUpdate
 
@@ -3470,6 +3433,85 @@ def check_user_activity(n, last_active_ts, user_email):
 
     return dash.no_update
 
+
+from dash import html, dcc
+
+def ranking_matrix(likert_questions, ranking_defaults=None):
+    header_row = html.Tr([
+        html.Th("Statement", style={"textAlign": "left", "width": "40%", "border": "none", "padding": "8px 4px"}),
+        html.Th("Importance", style={"textAlign": "center", "width": "60%", "border": "none", "padding": "8px 4px"})
+    ])
+
+    body_rows = []
+    for q in likert_questions:
+        row = html.Tr(
+            [
+                html.Td(q["text"], style={"verticalAlign": "middle", "border": "none", "padding": "12px 4px"}),
+                html.Td(
+                    dcc.RadioItems(
+                        id={"type": "rank-radio", "index": q["id"]},
+                        options=[{"label": str(i), "value": i} for i in range(1, 10)],
+                        value=ranking_defaults.get(q["id"]) if ranking_defaults else None,
+                        inline=True,
+                        labelStyle={
+                            "display": "inline-block",
+                            "width": f"{100/9:.1f}%",
+                            "textAlign": "center"
+                        }
+                    ),
+                    style={"textAlign": "center", "border": "none", "padding": "12px 4px"}
+                )
+            ],
+            id={"type": "ranking-row", "index": q["id"]}
+        )
+        body_rows.append(row)
+
+    return html.Table(
+        [html.Thead(header_row), html.Tbody(body_rows)],
+        style={"width": "100%", "borderCollapse": "collapse", "border": "none"}
+    )
+
+
+
+@app.callback(
+    Output("ranking-status", "children"),
+    Output("ranking-status", "style"),
+    Input({"type": "rank-radio", "index": ALL}, "value"),
+)
+def update_ranking_status(values):
+    chosen = [v for v in values if v is not None]
+
+    if len(chosen) < 9:
+        return (
+            "⚠️ Please assign a rank (1–9) to every statement",
+            {"color": "red"},
+        )
+
+    if len(set(chosen)) < 9:
+        return (
+            "❌ Each rank (1–9) must be used exactly once",
+            {"color": "red"},
+        )
+
+    return (
+        "✅ Ranking complete and valid",
+        {"color": "green"},
+    )
+
+@app.callback(
+    Output({'type': 'ranking-row', 'index': ALL}, 'style'),
+    Input({'type': 'rank-radio', 'index': ALL}, 'value')
+)
+def highlight_duplicates(values):
+    # Selvitetään duplikaatit (ignore None)
+    duplicates = [v for v in values if v is not None and values.count(v) > 1]
+    styles = []
+    for v in values:
+        if v in duplicates:
+            styles.append({"backgroundColor": "#f4d4d4"})
+        else:
+            styles.append({})
+    return styles
 
 
 if __name__ == "__main__":
