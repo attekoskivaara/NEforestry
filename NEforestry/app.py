@@ -207,7 +207,7 @@ likert_questions_old = [
 ]
 
 likert_questions = [
-    {"id": "regional_economy", "text": "generates benefits for regional economies?"},
+  #  {"id": "regional_economy", "text": "generates benefits for regional economies?"},
     {"id": "local_owners", "text": "sources wood primarily from local forest owners?"},
     {"id": "carbon_substitution", "text": "promotes the use of wood as a substitute for other materials?"},
     {"id": "carbon_storage", "text": "enhances carbon storage in forests?"},
@@ -215,7 +215,7 @@ likert_questions = [
     {"id": "local_sourcing", "text": "favors sourcing services and products from local companies?"},
     {"id": "employment_conditions", "text": "provides stable employment and fair conditions?"},
     {"id": "training_development", "text": "strengthens regional human capital through training?"},
-    {"id": "community_engagement", "text": "collaborates with local communities?"}
+  #  {"id": "community_engagement", "text": "collaborates with local communities?"}
 ]
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
@@ -3450,7 +3450,7 @@ def ranking_matrix(likert_questions, ranking_defaults=None):
                 html.Td(
                     dcc.RadioItems(
                         id={"type": "rank-radio", "index": q["id"]},
-                        options=[{"label": str(i), "value": i} for i in range(1, 10)],
+                        options=[{"label": str(i), "value": i} for i in range(1, 8)],
                         value=ranking_defaults.get(q["id"]) if ranking_defaults else None,
                         inline=True,
                         labelStyle={
@@ -3481,15 +3481,15 @@ def ranking_matrix(likert_questions, ranking_defaults=None):
 def update_ranking_status(values):
     chosen = [v for v in values if v is not None]
 
-    if len(chosen) < 9:
+    if len(chosen) < 7:
         return (
-            "⚠️ Please assign a rank (1–9) to every statement",
+            "⚠️ Please assign a rank (1–7) to every statement",
             {"color": "red"},
         )
 
-    if len(set(chosen)) < 9:
+    if len(set(chosen)) < 7:
         return (
-            "❌ Each rank (1–9) must be used exactly once",
+            "❌ Each rank (1–7) must be used exactly once",
             {"color": "red"},
         )
 
