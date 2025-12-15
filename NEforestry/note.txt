@@ -1,0 +1,6 @@
+Git haarat: 
+
+origin: likert kysely
+
+forced-ranking: ranking kysely samasta versiosta
+
