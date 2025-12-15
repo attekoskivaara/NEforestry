@@ -3254,7 +3254,7 @@ def submit_responses_callback(
 
     if len(set(rank_values)) != len(rank_values):
         return (html.Div(
-            "❌ Each rank must be unique. No duplicates allowed.",
+            "❌ In section 4: Each rank must be unique. No duplicates allowed.",
             style={"color": "red", "fontWeight": "bold", "marginTop": "10px"}
         ),
                 False,
