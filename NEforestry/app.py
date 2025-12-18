@@ -638,7 +638,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
         # Vasemman sarakkeen sisältö (osavaltiot)
         html.Div([
             html.Label(
-                "Please mark the state(s) where you work. You can select more than one:",
+                "Please mark the state(s) where you work. You can select more than one.",
                 style={"marginBottom": "10px", "display": "block"}
             ),
             dbc.Checklist(
@@ -679,7 +679,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
 
         # Oikean sarakkeen sisältö (työtehtävä jne.)
         html.Div([
-            dbc.Label("Which of the following categories best describe your organization?"),
+            dbc.Label("Which of the following categories best describe your organization? You can select more than one."),
             dbc.Checklist(
                 id="organization_type",
                 options=organization_options,
@@ -701,7 +701,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             ),
 
             # --- Position / role ---
-            dbc.Label("Which of the following best describes your own position or role in the organization?"),
+            dbc.Label("Which of the following best describes your own position or role in the organization? You can select more than one."),
             dbc.Checklist(
                 id="prof_position",
                 options=role_options,
