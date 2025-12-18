@@ -1,5 +1,5 @@
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, Email
 from dotenv import load_dotenv
 import os
 
@@ -9,8 +9,9 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 if not SENDGRID_API_KEY:
     raise ValueError("SendGrid API key not found!")
 
-FROM_EMAIL = "atte.koskivaara@luke.fi"  # vahvistettu
+FROM_EMAIL = "akoskivaara@umass.edu"  # vahvistettu
 TO_EMAIL = "attekosk@gmail.com"
+REPLY_TO_EMAIL ="atte.koskivaara@luke.fi"
 
 message = Mail(
     from_email=FROM_EMAIL,
@@ -19,6 +20,7 @@ message = Mail(
     plain_text_content="HEIPPA! Käyhän tekemässä kysely: https://hulicupter.pythonanywhere.com/"
 )
 
+message.reply_to = Email(REPLY_TO_EMAIL)
 sg = SendGridAPIClient(SENDGRID_API_KEY)
 
 try:
