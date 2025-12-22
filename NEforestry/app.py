@@ -208,13 +208,13 @@ likert_questions_old = [
 
 likert_questions = [
   #  {"id": "regional_economy", "text": "generates benefits for regional economies?"},
-    {"id": "local_owners", "text": "sources wood primarily from local forest owners?"},
-    {"id": "carbon_substitution", "text": "promotes the use of wood as a substitute for other materials?"},
-    {"id": "carbon_storage", "text": "enhances carbon storage in forests?"},
-    {"id": "biodiversity", "text": "protects and restores biodiversity?"},
-    {"id": "local_sourcing", "text": "favors sourcing services and products from local companies?"},
-    {"id": "employment_conditions", "text": "provides stable employment and fair conditions?"},
-    {"id": "training_development", "text": "strengthens regional human capital through training?"},
+    {"id": "local_owners", "text": "...sources wood primarily from local forest owners?"},
+    {"id": "carbon_substitution", "text": "...promotes the use of wood as a substitute for other materials?"},
+    {"id": "carbon_storage", "text": "...enhances carbon storage in forests?"},
+    {"id": "biodiversity", "text": "...protects and restores biodiversity?"},
+    {"id": "local_sourcing", "text": "...favors sourcing services and products from local companies?"},
+    {"id": "employment_conditions", "text": "...provides stable employment and fair conditions?"},
+    {"id": "training_development", "text": "...strengthens regional human capital through training?"},
   #  {"id": "community_engagement", "text": "collaborates with local communities?"}
 ]
 
@@ -1868,7 +1868,7 @@ html.Div([
         }),
 
         html.P(
-            "Please rank the following statements from 1 (most important) to 9 (least important)."
+            "Please rank the following statements from 1 (most important) to 7 (least important)."
         ),
 
         html.P(""),
@@ -3438,7 +3438,7 @@ from dash import html, dcc
 
 def ranking_matrix(likert_questions, ranking_defaults=None):
     header_row = html.Tr([
-        html.Th("Statement", style={"textAlign": "left", "width": "40%", "border": "none", "padding": "8px 4px"}),
+        html.Th(" ", style={"textAlign": "left", "width": "40%", "border": "none", "padding": "8px 4px"}),
         html.Th("Importance", style={"textAlign": "center", "width": "60%", "border": "none", "padding": "8px 4px"})
     ])
 
