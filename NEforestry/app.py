@@ -574,15 +574,21 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             html.H3("Survey: VISION 2060 for New England Forests", style={"fontWeight": "bold", "marginBottom": "10px"}),
             html.H4("About this survey", style={"marginTop": "20px", "marginBottom": "10px"}),
 
-            html.P([
-                "This survey asks for your views on ",
-                html.Span(
-                    "what the future of forests and the forest industry in New England should look like in 2060",
-                    style={"fontWeight": "bold"}
-                ),
-                ". Your responses will be treated anonymously and analyzed only in relation to the background information you provide in this survey."
-            ], style={"lineHeight": "1.5", "fontSize": "16px"}),
+        html.P([
+            "This survey asks for your views on ",
+            html.Span(
+                "what the future of forests and the forest industry in New England should look like in 2060",
+                style={"fontWeight": "bold"}
+            ),
+            ". Your responses will be treated anonymously and analyzed only in relation to the background information you provide in this survey."
+        ], style={"lineHeight": "1.5", "fontSize": "16px"}),
 
+        html.P(
+            "All data in this survey are drawn from official records and referenced appropriately. "
+            "It should be noted, however, that the graphs are a simplified representation "
+            "and do not capture the full complexity of the real-world situation.",
+            style={"lineHeight": "1.5", "fontSize": "16px", "marginTop": "15px"}
+        ),
             html.Div(
                 "Answer all the questions in a way that reflects your preferred vision for the year 2060.",
                 style={
