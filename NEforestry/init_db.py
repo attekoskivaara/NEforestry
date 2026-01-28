@@ -43,6 +43,7 @@ new_england_states = [
     "Connecticut", "Maine", "Massachusetts", "New Hampshire", "Rhode Island", "Vermont"
 ]
 
+
 # DEFAULTS (käyttäjän syöttämät muuttujat)
 DEFAULTS = {
     "protWoodlands": 21,
@@ -62,12 +63,14 @@ DEFAULTS = {
     "fuelshare": 20,
     "import_lumber": 149700,
     "import_paper": 114900,
+    "large_construction_val": 0,
     "construction_multistory": 5,
     "construction_multistory_val": 0,  # Täydennä tarpeen mukaan
     "construction_single": 26,
     "construction_single_val": 0,
     "manufacturing": 12,
     "manufacturing_val": 0,
+    "packaging_and_other_val": 0,
     "packaging": 13,
     "packaging_val": 0,
     "other": 9,
@@ -104,8 +107,10 @@ def create_database():
 
         -- Monivalinnat (JSON)
         state_checklist TEXT,
+        state_other TEXT,
         organization_type TEXT,
         organization_type_other TEXT,
+        organization_size TEXT,
         prof_position TEXT,
         prof_position_other TEXT,
         years_experience INTEGER,
@@ -123,9 +128,11 @@ def create_database():
         fuelshare REAL,
         import_lumber REAL,
         import_paper REAL,
+        large_construction_val REAL,
         construction_multistory_val REAL,
         construction_single_val REAL,
         manufacturing_val REAL,
+        packaging_and_other_val REAL,
         packaging_val REAL,
         other_val REAL,
         other_construction_val REAL,
@@ -154,8 +161,15 @@ def create_database():
         training_development_cannot_answer INTEGER,
         community_engagement_cannot_answer INTEGER,
         
+        general_comment TEXT,
+        
         reset_btn_1 INTEGER,
-        reset_btn_2 INTEGER
+        reset_btn_2 INTEGER,
+        
+        submit_count INTEGER,
+        logout_without_responding INTEGER,
+        logins INTEGER,
+        elapsed_time_seconds INTEGER
     )
     """)
 

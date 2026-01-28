@@ -14,3 +14,23 @@
     border-bottom: 3px double black; /* double line below */
     font-weight: bold;
 }
+
+.custom-gradient-btn {
+    padding: 12px 26px;
+    font-weight: bold;
+    font-size: 16px;
+    border-radius: 8px;
+    color: white;
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    background: linear-gradient(135deg, #007BFF 0%, #0056D2 100%);
+    transition: all 0.2s ease-in-out;
+}
+
+.custom-gradient-btn:hover {
+    filter: brightness(1.1);
+}
+
+.custom-gradient-btn:active {
+    transform: scale(0.98);
+}

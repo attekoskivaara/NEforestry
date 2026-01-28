@@ -123,22 +123,24 @@ DEFAULTS = {
     "fuelshare": 20,
     "import_lumber": 150000,
     "import_paper": 115000,
-    "construction_multistory": 5,
-    "construction_multistory_val": round(TOTAL_DEMAND * 0.05,- 2),
+  #  "construction_multistory": 5,
+  #  "construction_multistory_val": round(TOTAL_DEMAND * 0.05,- 2),
     "construction_single": 26,
     "construction_single_val": round(TOTAL_DEMAND * 0.26, -2),
     "manufacturing": 12,
     "manufacturing_val": round(TOTAL_DEMAND * 0.12, -2),
     "packaging": 13,
-    "packaging_val": round(TOTAL_DEMAND * 0.13, -2),
+  #  "packaging_val": round(TOTAL_DEMAND * 0.13, -2),
     "other": 9,
-    "other_val": round(TOTAL_DEMAND * 0.09, -2),
+  #  "other_val": round(TOTAL_DEMAND * 0.09, -2),
     "other_construction": 28,   #residential repair and remodeling
     "other_construction_val": round(TOTAL_DEMAND * 0.28, -2),
     "non_res_construction": 7,
-    "non_res_construction_val": round(TOTAL_DEMAND * 0.07, -2),
+  #  "non_res_construction_val": round(TOTAL_DEMAND * 0.07, -2),
     "recovery_timber": 8000,
-    "logging_intensity": 27
+    "logging_intensity": 27,
+    "large_construction_val": round(TOTAL_DEMAND * 0.12, -2),
+    "packaging_and_other_val": round(TOTAL_DEMAND * 0.22, -2)
 }
 
 DEFAULTS_NUMERIC = [
@@ -147,17 +149,19 @@ DEFAULTS_NUMERIC = [
     DEFAULTS["fuelwood"],
     DEFAULTS["import_lumber"],
     DEFAULTS["import_paper"],
-    DEFAULTS["construction_multistory_val"],
+ #   DEFAULTS["construction_multistory_val"],
     DEFAULTS["construction_single_val"],
     DEFAULTS["manufacturing_val"],
-    DEFAULTS["packaging_val"],
-    DEFAULTS["other_val"],
+  #  DEFAULTS["packaging_val"],
+  #  DEFAULTS["other_val"],
     DEFAULTS["other_construction_val"],
-    DEFAULTS["non_res_construction_val"],  # tämä puuttui alkuperästä!
+ #   DEFAULTS["non_res_construction_val"],
     1,   # placeholder default
     1,   # placeholder default
     DEFAULTS["recovery_timber"],
-    DEFAULTS["from_lumber_to_pulp"]
+    DEFAULTS["from_lumber_to_pulp"],
+    DEFAULTS["large_construction_val"],
+    DEFAULTS["packaging_and_other_val"]
 ]
 
 
@@ -208,13 +212,13 @@ likert_questions_old = [
 
 likert_questions = [
   #  {"id": "regional_economy", "text": "generates benefits for regional economies?"},
-    {"id": "local_owners", "text": "...sources wood primarily from local forest owners?"},
-    {"id": "carbon_substitution", "text": "...promotes the use of wood as a substitute for other materials?"},
-    {"id": "carbon_storage", "text": "...enhances carbon storage in forests?"},
-    {"id": "biodiversity", "text": "...protects and restores biodiversity?"},
-    {"id": "local_sourcing", "text": "...favors sourcing services and products from local companies?"},
-    {"id": "employment_conditions", "text": "...provides stable employment and fair conditions?"},
-    {"id": "training_development", "text": "...strengthens regional human capital through training?"},
+    {"id": "local_owners", "text": "sources wood primarily from local forest owners?"},
+    {"id": "carbon_substitution", "text": "promotes the use of wood as a substitute for other materials?"},
+    {"id": "carbon_storage", "text": "enhances carbon storage in forests?"},
+    {"id": "biodiversity", "text": "protects and restores biodiversity?"},
+    {"id": "local_sourcing", "text": "favors sourcing services and products from local companies?"},
+    {"id": "employment_conditions", "text": "provides stable employment and fair conditions?"},
+    {"id": "training_development", "text": "strengthens regional human capital through training?"},
   #  {"id": "community_engagement", "text": "collaborates with local communities?"}
 ]
 
@@ -271,100 +275,113 @@ def check_user(email, password):
 def make_sankey(values):
     labels = [
         "Woodlands (million acres)",  # 0
-        "Timber harvesting in New England",                  # 1
-        "Wildlands (million acres)",  # 2
-        "Lumber",      # 3  (thousand ft³)
-        "Pulp",  # 4
-        "Fuelwood",    # 5
-        "Lumber import",            # 6
-        "Pulp import",             # 7
-        "Conservation",                # 8
-        "Construction multistory",      #9
-        "Construction single family", # 10
-        "Manufacturing",              # 11
-        "Packaging",                  # 12
-        "Other uses",                      # 13
-        "Residential repair and remodeling",         # 14
-        "Nonresidential construction", # 15
-       # "",          # 16 paper placeholder
-        "",             # 17 fuelwood placeholder
-        "",             # 18 placeholder for wildlands
-        ""             # 19
-        ]
+        "Timber harvesting in New England",  # 1
+        "Lumber",  # 2
+        "Pulpwood",  # 3
+        "Fuelwood",  # 4
+        "Lumber import",  # 5
+        "Pulp import",  # 6
+        "Conservation",  # 7
 
+        "Large-scale construction",  # 8
+        "Single family construction",  # 9
+        "Repair and remodeling",  # 10
+        "Manufacturing",  # 11
+        "Packaging and other uses",  # 12
 
-    woodlands = values.get("woodlands") or 0
+        "",  # 13 pulp placeholder
+        "",  # 14 fuelwood placeholder
+    ]
 
+    # ------------------------
+    # LINK SOURCES / TARGETS
+    # ------------------------
     sources = [
-        1, 1, 1, 6, 7, 3, 3, 3, 3, 3, 3, 3, 4, 5, 3, 3
+        1, 1, 1,  # Harvesting → Lumber / Pulp / Fuelwood
+        5, 6,  # Imports → Lumber / Pulp
+        2, 2, 2, 2, 2,  # Lumber → end uses
+        3, 4,  # Pulp / Fuelwood → placeholders
+        2, 2  # Lumber → recovery / pulp
     ]
     targets = [
-        3, 4, 5, 3, 4, 9, 10, 11, 12, 13, 14, 15, 17, 18, 3, 4
+        2, 3, 4,  # Harvesting → Lumber / Pulp / Fuelwood
+        2, 3,  # Imports → Lumber / Pulp
+        8, 9, 10, 11, 12,  # Lumber → Large-scale / Single / Other / Manufacturing / Packaging
+        13, 14,  # Pulp / Fuelwood sinks
+        2, 3  # Recovery loop, lumber → pulp
     ]
 
-    woodlands_volume = values.get("intensity_volume", 0)
-
+    # ------------------------
+    # LINK VALUES
+    # ------------------------
     values_list = [
-        values.get("lumber", 0),  # Intensity → Lumber
-        values.get("paper",0),  # Intensity → Paper
-        values.get("fuelwood",0),  # Intensity → Fuelwood
+        values.get("lumber", 0),
+        values.get("paper", 0),
+        values.get("fuelwood", 0),
         values.get("import_lumber", 0),
         values.get("import_paper", 0),
-        values.get("construction_multistory_val", 0),
+
+        values.get("large_construction_val", 0),
         values.get("construction_single_val", 0),
-        values.get("manufacturing_val", 0),
-        values.get("packaging_val", 0),
-        values.get("other_val", 0),
         values.get("other_construction_val", 0),
-        values.get("non_res_construction_val", 0),
-    #    1,
-        1,
-        1,
+        values.get("manufacturing_val", 0),
+        values.get("packaging_and_other_val", 0),
+
+       # values.get("other_val", 0),
+        1,  # pulp placeholder
+        1,  # fuelwood placeholder
+
         values.get("recovery_timber", 0),
         values.get("from_lumber_to_pulp", 0)
     ]
 
-
-#6D4C41 < tumma
-#D2B48C < med. tumma
-#F5DEB3 < vaalea
+    # ------------------------
+    # NODE COLORS
+    # ------------------------
     node_colors = [
-        # --- SOURCES (metsät + tuonti) ---
-        "#6D4C41",  # 0: Woodlands
-        "#6D4C41",  # 1: Intensity (lähde)
-        "#6D4C41",  # 2: Wildlands
+        "#6D4C41",  # 0 Woodlands
+        "#6D4C41",  # 1 Harvesting
+        "#D2B48C",  # 2 Lumber
+        "#D2B48C",  # 3 Pulp
+        "#D2B48C",  # 4 Fuelwood
+        "#6D4C41",  # 5 Lumber import
+        "#6D4C41",  # 6 Pulp import
+        "#4CAF50",  # 7 Conservation
 
-        "#D2B48C",  # 3: Lumber (source view)
-        "#D2B48C",  # 4: Raw material for paper (source view)
-        "#D2B48C",  # 5: Fuelwood (source view)
+        "#F5DEB3",  # 8 Large-scale construction
+        "#F5DEB3",  # 9 Single-family
+        "#F5DEB3",  # 10 Other construction
+        "#F5DEB3",  # 11 Manufacturing
+        "#F5DEB3",  # 12 Packaging & other
 
-        "#6D4C41",  # 6: Import Lumber
-        "#6D4C41",  # 7: Import Paper
+        "rgba(0,0,0,0)",  # 13 pulp placeholder
+        "rgba(0,0,0,0)",  # 14 fuelwood placeholder
 
-        "#4CAF50",  # 8: Conservation (jos katsot lähteeksi)
-
-        # --- PRODUCTS (massaräätälöinnin tuotetyypit) ---
-        "#F5DEB3",  # 9: Construction multistory (tuoteryhmä)
-        "#F5DEB3",  # 10: Construction single family
-        "#F5DEB3",  # 11: Manufacturing
-        "#F5DEB3",  # 12: Packaging
-
-        # --- END USE / OTHER USES ---
-        "#F5DEB3",  # 13: Other
-        "#F5DEB3",  # 14: Other Construction
-        "#F5DEB3",  # 15: Other Construction (duplikaatti node)
-
-        # --- PLACEHOLDERS ---
-        "rgba(0,0,0,0)",  # 16: Paper placeholder
-        "rgba(0,0,0,0)",  # 17: Fuelwood placeholder
-        "rgba(0,0,0,0)",  # 18: Paper placeholder
-
-        # --- LOOP NODE (sama väri kuin lumber) ---
-        "#4CAF50",  # 19: Lumber (loop)
+        "#4CAF50",  # 15 recovery loop
+        "#4CAF50",  # 16 recovery loop
     ]
 
-    link_colors = [color_from_diff(v, default) for v, default in zip(values_list, DEFAULTS_NUMERIC)]
 
+
+    link_defaults = [
+        DEFAULTS["lumber"],  # Harvesting → Lumber
+        DEFAULTS["paper"],  # Harvesting → Pulp
+        DEFAULTS["fuelwood"],  # Harvesting → Fuelwood
+        DEFAULTS["import_lumber"],  # Import → Lumber
+        DEFAULTS["import_paper"],  # Import → Pulp
+        DEFAULTS["large_construction_val"],  # Lumber → Large-scale
+        DEFAULTS["construction_single_val"],  # Lumber → Single
+        DEFAULTS["other_construction_val"],  # Lumber → Other Construction
+        DEFAULTS["manufacturing_val"],  # Lumber → Manufacturing
+        DEFAULTS["packaging_and_other_val"],  # Lumber → Packaging & Other uses
+     #   DEFAULTS["other_val"],  # Lumber → Other
+        1,  # Pulp placeholder
+        1,  # Fuelwood placeholder
+        DEFAULTS["recovery_timber"],  # Lumber → Recovery
+        DEFAULTS["from_lumber_to_pulp"]  # Lumber → Pulp
+    ]
+
+    link_colors = [color_from_diff(v, default) for v, default in zip(values_list, link_defaults)]
     special_flow_index = len(link_colors) - 1  # viimeinen linkki, lumber loop
     # customdata for every link
 
@@ -382,8 +399,9 @@ def make_sankey(values):
             pad=30, thickness=20,
             label=labels,
             color=node_colors,
+            hoverinfo="none"
         ),
-        link=dict(source=sources, target=targets, value=values_list, color=link_colors, label=labels_for_links)
+        link=dict(hoverinfo="none", source=sources, target=targets, value=values_list, color=link_colors, label=labels_for_links)
     )])
 
     fig.add_annotation(
@@ -575,16 +593,16 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             html.H4("About this survey", style={"marginTop": "20px", "marginBottom": "10px"}),
 
         html.P([
-            "This survey asks for your views on ",
+            "This survey requests your opinion on ",
             html.Span(
                 "what the future of forests and the forest industry in New England should look like in 2060",
                 style={"fontWeight": "bold"}
             ),
-            ". Your responses will be treated anonymously and analyzed only in relation to the background information you provide in this survey."
+            ". Your responses will be treated anonymously and analyzed only in relation to the background information you provide in the survey."
         ], style={"lineHeight": "1.5", "fontSize": "16px"}),
 
         html.P(
-            "All data in this survey are drawn from official records and referenced appropriately. "
+            "All data in this survey come directly from official records and are cited accordingly. "
             "It should be noted, however, that the graphs are a simplified representation "
             "and do not capture the full complexity of the real-world situation.",
             style={"lineHeight": "1.5", "fontSize": "16px", "marginTop": "15px"}
@@ -605,14 +623,14 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             ),
 
             html.P([
-                "The order in which you answer the survey does not matter. However, ",
+                "The order in which you answer the survey questions does not matter. However, ",
                 html.Span("your adjustments may affect other variables in other parts of the study.",
                           style={"fontWeight": "bold"}),
                 " For example, increasing or decreasing the area of protected or unprotected forest land in Graph 1 will impact the amount of timber harvesting in New England in Graph 2."
             ]),
 
             html.P([
-                html.Span("You can submit your responses and log out at the end of the survey. You can login again using your credentials to change your answers until 31th of March 2026",
+                html.Span("You can submit your responses and log out at the end of the survey. You can log in again using your credentials to change your answers until 31st of March 2026",
                         style={"fontWeight": "bold"}),
             ]),
 
@@ -775,24 +793,14 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
             html.P([
                 "Adjust the land area parameters individually based on ",
                 html.Span("your desired future scenario in 2060", style={"fontWeight": "bold"}),
-                "."
+                ".",
+                html.Span(" Note that the default settings currently displayed reflect 2020 information.")
             ]),
             html.P("Click 'Set everything to default' to restore initial values in this part of the survey."),
 
-            html.P("Please note: For the both graphs to update the land cover shares must sum to 100%.",
-                   style={
-                       "fontSize": "16px",
-                       "lineHeight": "1.4",
-                       "fontWeight": "bold",
-                       "color": "#856404",  # dark brownish for readability
-                       "backgroundColor": "#fff3cd",  # light yellow/orange highlight
-                       "padding": "8px",
-                       "borderRadius": "5px",
-                       "border": "1px solid #ffeeba"  # subtle border for emphasis
-                   }
-                   ),
-            html.P("Please note: Both Unprotected Forests and Protected Forests can be used for timber harvesting, and"
-                   " their assigned land values influence timber production in Part 3 of the survey.",
+            html.P("Please note: For the both graphs to update, the land cover shares must sum to 100%. "
+                   "Both 'Unprotected Forests' and 'Protected Forests can be used for timber harvesting, and their assigned"
+                   " land values influence timber production in Part 3 of the survey.",
                    style={
                        "fontSize": "16px",
                        "lineHeight": "1.4",
@@ -1004,20 +1012,11 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
     dcc.Store(id="woodlands_area"),
 
     html.Div([
-        html.Button("Set land cover variables to default", id="reset-btn-1", n_clicks=0,
-                    style={
-                        "marginTop": "20px",
-                        "padding": "12px 26px",
-                        "fontWeight": "bold",
-                        "fontSize": "16px",
-                        "color": "white",
-                        "background": "linear-gradient(135deg, #007BFF 0%, #0056D2 100%)",
-                        "border": "none",
-                        "borderRadius": "8px",
-                        "cursor": "pointer",
-                        "boxShadow": "0 4px 8px rgba(0,0,0,0.15)",
-                        "transition": "all 0.2s ease-in-out",
-                    }),
+        dbc.Button(
+            "Set land cover variables to default",
+            id="reset-btn-1",
+            n_clicks=0,
+        )
         ], style={
         "flex": "1",
         "display": "flex",
@@ -1051,18 +1050,20 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
         ]),
         html.P([
             html.B("3.1 Timber sources in New England:"),
-            " Adjust the slider to reflect your average harvesting intensity in New England forests. "
-            "Additionally, set lumber and pulpwood imports to your desired levels."
+            " Adjust the slider to reflect your desired average harvesting intensity in New England forests. "
+            "Additionally, set lumber and pulpwood imports to your desired levels. "
+            "Again, the default settings currently displayed reflect 2020 information."
         ]),
 
         html.P([
-            html.B("3.2 Timber supply by assortments:"),
-            " Adjust the percentages of harvests allocated to lumber, pulpwood, and fuelwood."
+            html.B("3.2 Timber supply by category:"),
+            " Adjust the percentages of New England forest harvests that you would like to allocate"
+            " to lumber, pulpwood, and fuelwood."
         ]),
 
         html.P([
-            html.B("3.3 Lumber demand by enduse:      "),
-            " Use the input fields below to define how the end-use distribution should develop until 2060."
+            html.B("3.3 Lumber demand by end-use category:      "),
+            " Use the input fields to define how the end-use distribution should develop until 2060."
         ]),
 
         html.P("Click “Set everything to default” to restore the initial values in this part of the survey."),
@@ -1078,7 +1079,9 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                    "border": "1px solid #ffeeba"  # subtle border for emphasis
                }
                ),
-        html.P("Please note: Demand must match supply with an accuracy of 5,000 mcf.",
+        html.P("Please note: Product typ percentages must sum up to 100%. Demand (section 3.3) must match"
+               " supply (section 3.2) with an accuracy of 5,000 mcf. The unic mcf refers to thousand cubic feet of wood-based"
+               " products (e.g., timber, lumber, pulpwood, and fuelwood).",
                style={
                    "fontSize": "16px",
                    "lineHeight": "1.4",
@@ -1090,18 +1093,7 @@ def survey_layout(defaults, db_data, sankey_fig=None, bar_fig=None):
                    "border": "1px solid #ffeeba"  # subtle border for emphasis
                }
                ),
-        html.P("Please note: The unit mcf refers to thousand cubic feet of wood-based products (e.g., timber, lumber, pulpwood, and fuelwood)",
-               style={
-                   "fontSize": "16px",
-                   "lineHeight": "1.4",
-                   "fontWeight": "bold",
-                   "color": "#856404",  # dark brownish for readability
-                   "backgroundColor": "#fff3cd",  # light yellow/orange highlight
-                   "padding": "8px",
-                   "borderRadius": "5px",
-                   "border": "1px solid #ffeeba"  # subtle border for emphasis
-               }
-               )
+
     ], className='col-3', style={
         "width": "100%",
         "padding": "20px",
@@ -1435,414 +1427,447 @@ html.Div([
                 "justifyContent": "space-between",
                 "width": "100%",
                 "minWidth": "0",
-
-
             }),
+# Column 3
+        html.Div([
+            html.Div(id="lumber_supply_status"),
 
-            # --- Column 3: End uses ---
             html.Div([
-                html.H4("3.3. Lumber demand by enduse", style={'fontWeight': 'bold', "marginBottom": "10px"}),
+                html.Div(id="lumber_supply_text2", style={"marginTop": "20px", "marginBottom": "10px"}),
+                html.Div(id="lumber_demand_status", style={"marginTop": "20px", "marginBottom": "10px"}),
+
+                # --- ADDED GRAPH HERE ---
+                dcc.Graph(id="lumber-bar-chart",
+                          style={
+                              "backgroundColor": "rgba(0,0,0,0)",
+                              "flex": "1"
+                          },
+                          config={
+                    'displayModeBar': False,
+                    'scrollZoom': False,
+                    'editable': False
+                }),
+                # -------------------------
+
+                html.P(""),
+                html.Hr(style={
+                    "border": "none",
+                    "borderTop": "2px solid black",
+                    "margin": "20px 0"
+                }),
+                html.P("*Please note: Supply and demand must match with an accuracy of 5,000 mcf."),
+
+            ], id="sd_style_box"),
+        ]),
+
+        # --- Column 3: End uses ---
+        html.Div([
+            html.H4("3.3. Lumber demand by enduse", style={'fontWeight': 'bold', "marginBottom": "10px"}),
+
+
+
+            html.Div([
+
+                html.Label([
+                    html.Span("Large-scale construction (multistory & non-res.) ", style={"fontWeight": "bold"}),
+                    html.Span(
+                        "definition ",
+                        title=(
+                            "Includes also mobile and modular housing units"
+                        ),
+                        style={
+                            "cursor": "help",
+                            "color": "#007BFF",
+                            "marginLeft": "5px",
+                            "fontWeight": "bold"
+                        }
+                    ),
+                    html.Span(f"(in 2020: {DEFAULTS['large_construction_val']:,.0f})",
+                              style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
+                ], style={"display": "block", "marginBottom": "5px"}),
+
                 html.Div([
-                    # Construction (multifamily)
-                    html.Label([
-                        html.Span("Construction (multifamily) ", style={"fontWeight": "bold"}),
-                        html.Span(
-                            "definition ",
-                            title=(
-                                "Includes also mobile and modular housing units"
-                            ),
-                            style={
-                                "cursor": "help",
-                                "color": "#007BFF",
-                                "marginLeft": "5px",
-                                "fontWeight": "bold"
-                            }
-                        ),
-                        html.Span(f"(in 2020: {DEFAULTS['construction_multistory_val']:,.0f})",
-                                  style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
-                    ], style={"display": "block", "marginBottom": "5px"}),
-
-                    html.Div([
-                        dbc.Input(
-                            id="construction_multistory_val",
-                            type="number",
-                            value=defaults.get("construction_multistory_val", (DEFAULTS["construction_multistory_val"])),
-                            min=0,
-                            max=600000,
-                            step=100,
-                            style={
-                                "width": "100px",
-                                "margin": "0 5px 0 0",  # pieni väli Spanin ja Inputin väliin
-                                "textAlign": "right",
-                            },
-                        ),
-                        html.Span(id="construction_multistory_change", style={"fontWeight": "normal"})
-                    ],
+                    dbc.Input(
+                        id="large_construction_val",
+                        type="number",
+                        value=defaults.get("large_construction_val", (DEFAULTS["large_construction_val"])),
+                        min=0,
+                        max=600000,
+                        step=100,
                         style={
-                            "display": "flex",
-                            "alignItems": "center",  # keskittää vaakasuoraan
-                            "marginBottom": "20px"
-                        }),
-
-                    # daq.NumericInput(
-                    #     id="construction_multistory_val",
-                    #     value=DEFAULTS["construction_multistory_val"],
-                    #     min=0,
-                    #     max=100,
-                    #     size=70,
-                    #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
-                    # ),
-
-                    # Construction (single-family)
-                    html.Label([
-                        html.Span("Construction (single-family) ", style={"fontWeight": "bold"}),
-                        html.Span(f"(in 2020: {DEFAULTS['construction_single_val']:,.0f})",
-                                  style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
-                    ], style={"display": "block", "marginBottom": "5px"}),
-
-                    html.Div([
-                        dbc.Input(
-                            id="construction_single_val",
-                            type="number",
-                            value=defaults.get("construction_single_val", (DEFAULTS["construction_single_val"])),
-                            min=0,
-                            max=600000,
-                            step=100,
-                            style={
-                                "width": "100px",
-                                "margin": "0 5px 0 0",  # pieni väli Spanin ja Inputin väliin
-                                "textAlign": "right",
-                            },
-                        ),
-                        html.Span(id="construction_single_change", style={"fontWeight": "normal"})
-                    ],
-                        style={
-                            "display": "flex",
-                            "alignItems": "center",  # keskittää vaakasuoraan
-                            "marginBottom": "20px"
-                        }),
-
-
-                    # daq.NumericInput(
-                    #     id="construction_single_val",
-                    #     value=DEFAULTS["construction_single_val"],
-                    #     min=0,
-                    #     max=100,
-                    #     size=70,
-                    #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
-                    # ),
-
-                    # Manufacturing
-                    html.Label([
-                        html.Span("Manufacturing", style={"fontWeight": "bold"}),
-                        html.Span(
-                            "definition ",
-                            title=(
-                                "Includes for example furniture production for household, commercial, and"
-                                " institutional uses"
-                            ),
-                            style={
-                                "cursor": "help",
-                                "color": "#007BFF",
-                                "marginLeft": "5px",
-                                "fontWeight": "bold"
-                            }
-                        ),
-                        html.Span(f"(in 2020: {DEFAULTS['manufacturing_val']:,.0f})",
-                                  style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
-                    ], style={"display": "block", "marginBottom": "5px"}),
-
-                    # Manufacturing
-                    html.Div([
-                        dbc.Input(
-                            id="manufacturing_val",
-                            type="number",
-                            value=defaults.get("manufacturing_val", (DEFAULTS["manufacturing_val"])),
-                            min=0,
-                            max=600000,
-                            step=100,
-                            style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
-                        ),
-                        html.Span(id="manufacturing_change", style={"fontWeight": "normal"})
-                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
-
-
-                    # daq.NumericInput(
-                    #     id="manufacturing_val",
-                    #     value=DEFAULTS["manufacturing_val"],
-                    #     min=0,
-                    #     max=100,
-                    #     size=70,
-                    #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
-                    # ),
-
-                    # Packaging
-                    html.Label([
-                        html.Span("Packaging ", style={"fontWeight": "bold"}),
-                        html.Span(
-                            "definition ",
-                            title=(
-                                "Includes for example pallets, wood boxes, crates, hampers, baskets, and other"
-                                " wooden containers"
-                            ),
-                            style={
-                                "cursor": "help",
-                                "color": "#007BFF",
-                                "marginLeft": "5px",
-                                "fontWeight": "bold"
-                            }
-                        ),
-                        html.Span(f"(in 2020: {DEFAULTS['packaging_val']:,.0f})",
-                                  style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
-                    ], style={"display": "block", "marginBottom": "5px"}),
-
-                    # Packaging
-                    html.Div([
-                        dbc.Input(
-                            id="packaging_val",
-                            type="number",
-                            value=defaults.get("packaging_val", (DEFAULTS["packaging_val"])),
-                            min=0,
-                            max=600000,
-                            step=100,
-                            style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
-                        ),
-                        html.Span(id="packaging_change", style={"fontWeight": "normal"})
-                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
-
-                    # daq.NumericInput(
-                    #     id="packaging_val",
-                    #     value=DEFAULTS["packaging_val"],
-                    #     min=0,
-                    #     max=100,
-                    #     size=70,
-                    #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
-                    # ),
-
-                    # Other
-                    html.Label([
-                        html.Span("Other uses ", style={"fontWeight": "bold"}),
-                        html.Span(
-                            "definition ",
-                            title=(
-                                "Includes wood usage by hobbyist woodworkers and DIY projects; advertising and display"
-                                " structures, wood shingles; fencing; and other miscellaneous items"
-                            ),
-                            style={
-                                "cursor": "help",
-                                "color": "#007BFF",
-                                "marginLeft": "5px",
-                                "fontWeight": "bold"
-                            }
-                        ),
-
-                        html.Span(f"(in 2020: {DEFAULTS['other_val']:,.0f})",
-                                  style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
-                    ], style={"display": "block", "marginBottom": "5px"}),
-
-                    # Other
-                    html.Div([
-                        dbc.Input(
-                            id="other_val",
-                            type="number",
-                            value=defaults.get("other_val", (DEFAULTS["other_val"])),
-                            min=0,
-                            max=600000,
-                            step=100,
-                            style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
-                        ),
-                        html.Span(id="other_change", style={"fontWeight": "normal"})
-                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
-
-                    # daq.NumericInput(
-                    #     id="other_val",
-                    #     value=DEFAULTS["other_val"],
-                    #     min=0,
-                    #     max=100,
-                    #     size=70,
-                    #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
-                    # ),
-
-                    html.Label([
-                        html.Span("Nonresidential construction ", style={"fontWeight": "bold"}),
-                        html.Span(
-                            "definition ",
-                            title=(
-                                "Includes for example lodging, office, commercial, healthcare, educational, religious, "
-                                "public safety, as well as infrastructure related construction"
-                            ),
-                            style={
-                                "cursor": "help",
-                                "color": "#007BFF",
-                                "marginLeft": "5px",
-                                "fontWeight": "bold"
-                            }
-                        ),
-                        html.Span(f"(in 2020: {DEFAULTS['non_res_construction_val']:,.0f})",
-                                  style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
-                    ], style={"display": "block", "marginBottom": "5px"}),
-
-                    html.Div([
-                        dbc.Input(
-                            id="non_res_construction_val",
-                            type="number",
-                            value=defaults.get("non_res_construction_val", (DEFAULTS["non_res_construction_val"])),
-                            min=0,
-                            max=600000,
-                            step=100,
-                            style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
-                        ),
-                        html.Span(id="non_res_construction_change", style={"fontWeight": "normal"})
-                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
-
-
-
-
-                    # daq.NumericInput(
-                    #     id="non_res_construction_val",
-                    #     value=DEFAULTS["non_res_construction_val"],
-                    #     min=0,
-                    #     max=100,
-                    #     size=70,
-                    #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
-                    # ),
-
-                    # Other construction (repair)
-                    html.Label([
-                        html.Span("Residential repair and remodeling ", style={"fontWeight": "bold"}),
-                        html.Span(
-                            "definition ",
-                            title=(
-                                "upkeep and improvements and/or renovation of existing residential housing stock"
-                            ),
-                            style={
-                                "cursor": "help",
-                                "color": "#007BFF",
-                                "marginLeft": "5px",
-                                "fontWeight": "bold"
-                            }
-                        ),
-
-                        html.Span(f"(in 2020: {DEFAULTS['other_construction_val']:,.0f})",
-                                  style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
-                    ], style={"display": "block", "marginBottom": "5px"}),
-
-                    # nonres Construction
-                    html.Div([
-                        dbc.Input(
-                            id="other_construction_val",
-                            type="number",
-                            value=defaults.get("other_construction_val", int(DEFAULTS["other_construction_val"])),
-                            min=0,
-                            max=600000,
-                            step=100,
-                            style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
-                        ),
-                        html.Span(id="other_construction_change", style={"fontWeight": "normal"})
-                    ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
-
-                    html.P(""),
-                    html.Hr(style={
-                        "border": "none",       # remove default border
-                        "borderTop": "2px solid black",  # grey line
-                        "margin": "20px 0"      # vertical spacing
+                            "width": "100px",
+                            "margin": "0 5px 0 0",  # pieni väli Spanin ja Inputin väliin
+                            "textAlign": "right",
+                        },
+                    ),
+                    html.Span(id="large_construction_change", style={"fontWeight": "normal"})
+                ],
+                    style={
+                        "display": "flex",
+                        "alignItems": "center",  # keskittää vaakasuoraan
+                        "marginBottom": "20px"
                     }),
-                    html.P("*Please note: enter values rounded to the nearest hundred."),
 
-                    # daq.NumericInput(
-                    #     id="other_construction_val",
-                    #     value=DEFAULTS["other_construction_val"],
-                    #     min=0,
-                    #     max=100,
-                    #     size=70,
-                    #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
-                    # ),
+                # Manufacturing
+                html.Label([
+                    html.Span("Manufacturing", style={"fontWeight": "bold"}),
+                    html.Span(
+                        "definition ",
+                        title=(
+                            "Includes for example furniture production for household, commercial, and"
+                            " institutional uses"
+                        ),
+                        style={
+                            "cursor": "help",
+                            "color": "#007BFF",
+                            "marginLeft": "5px",
+                            "fontWeight": "bold"
+                        }
+                    ),
+                    html.Span(f"(in 2020: {DEFAULTS['manufacturing_val']:,.0f})",
+                              style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
+                ], style={"display": "block", "marginBottom": "5px"}),
+
+                # Manufacturing
+                html.Div([
+                    dbc.Input(
+                        id="manufacturing_val",
+                        type="number",
+                        value=defaults.get("manufacturing_val", (DEFAULTS["manufacturing_val"])),
+                        min=0,
+                        max=600000,
+                        step=100,
+                        style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
+                    ),
+                    html.Span(id="manufacturing_change", style={"fontWeight": "normal"})
+                ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
+
+                # Packaging
+                html.Label([
+                    html.Span("Packaging and other ", style={"fontWeight": "bold"}),
+                    html.Span(
+                        "definition ",
+                        title=(
+                            "Includes for example pallets, wood boxes, crates, hampers, baskets, and other"
+                            " wooden containers"
+                        ),
+                        style={
+                            "cursor": "help",
+                            "color": "#007BFF",
+                            "marginLeft": "5px",
+                            "fontWeight": "bold"
+                        }
+                    ),
+                    html.Span(f"(in 2020: {DEFAULTS['packaging_and_other_val']:,.0f})",
+                              style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
+                ], style={"display": "block", "marginBottom": "5px"}),
+
+                # Packaging and other enduses
+                html.Div([
+                    dbc.Input(
+                        id="packaging_and_other_val",
+                        type="number",
+                        value=defaults.get("packaging_and_other_val", (DEFAULTS["packaging_and_other_val"])),
+                        min=0,
+                        max=600000,
+                        step=100,
+                        style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
+                    ),
+                    html.Span(id="packaging_and_other_change", style={"fontWeight": "normal"})
+                ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
+
+                # # Construction (multifamily)
+                # html.Label([
+                #     html.Span("Construction (multifamily) ", style={"fontWeight": "bold"}),
+                #     html.Span(
+                #         "definition ",
+                #         title=(
+                #             "Includes also mobile and modular housing units"
+                #         ),
+                #         style={
+                #             "cursor": "help",
+                #             "color": "#007BFF",
+                #             "marginLeft": "5px",
+                #             "fontWeight": "bold"
+                #         }
+                #     ),
+                #     html.Span(f"(in 2020: {DEFAULTS['construction_multistory_val']:,.0f})",
+                #               style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
+                # ], style={"display": "block", "marginBottom": "5px"}),
+                #
+                # html.Div([
+                #     dbc.Input(
+                #         id="construction_multistory_val",
+                #         type="number",
+                #         value=defaults.get("construction_multistory_val", (DEFAULTS["construction_multistory_val"])),
+                #         min=0,
+                #         max=600000,
+                #         step=100,
+                #         style={
+                #             "width": "100px",
+                #             "margin": "0 5px 0 0",  # pieni väli Spanin ja Inputin väliin
+                #             "textAlign": "right",
+                #         },
+                #     ),
+                #     html.Span(id="construction_multistory_change", style={"fontWeight": "normal"})
+                # ],
+                #     style={
+                #         "display": "flex",
+                #         "alignItems": "center",  # keskittää vaakasuoraan
+                #         "marginBottom": "20px"
+                #     }),
+
+                # daq.NumericInput(
+                #     id="construction_multistory_val",
+                #     value=DEFAULTS["construction_multistory_val"],
+                #     min=0,
+                #     max=100,
+                #     size=70,
+                #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
+                # ),
+
+                # Other construction (repair)
+                html.Label([
+                    html.Span("Residential repair and remodeling ", style={"fontWeight": "bold"}),
+                    html.Span(
+                        "definition ",
+                        title=(
+                            "upkeep and improvements and/or renovation of existing residential housing stock"
+                        ),
+                        style={
+                            "cursor": "help",
+                            "color": "#007BFF",
+                            "marginLeft": "5px",
+                            "fontWeight": "bold"
+                        }
+                    ),
+
+                    html.Span(f"(in 2020: {DEFAULTS['other_construction_val']:,.0f})",
+                              style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
+                ], style={"display": "block", "marginBottom": "5px"}),
+
+                # nonres Construction
+                html.Div([
+                    dbc.Input(
+                        id="other_construction_val",
+                        type="number",
+                        value=defaults.get("other_construction_val", int(DEFAULTS["other_construction_val"])),
+                        min=0,
+                        max=600000,
+                        step=100,
+                        style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
+                    ),
+                    html.Span(id="other_construction_change", style={"fontWeight": "normal"})
+                ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
+
+                # Construction (single-family)
+                html.Label([
+                    html.Span("Single-family construction ", style={"fontWeight": "bold"}),
+                    html.Span(f"(in 2020: {DEFAULTS['construction_single_val']:,.0f})",
+                              style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
+                ], style={"display": "block", "marginBottom": "5px"}),
+
+                html.Div([
+                    dbc.Input(
+                        id="construction_single_val",
+                        type="number",
+                        value=defaults.get("construction_single_val", (DEFAULTS["construction_single_val"])),
+                        min=0,
+                        max=600000,
+                        step=100,
+                        style={
+                            "width": "100px",
+                            "margin": "0 5px 0 0",  # pieni väli Spanin ja Inputin väliin
+                            "textAlign": "right",
+                        },
+                    ),
+                    html.Span(id="construction_single_change", style={"fontWeight": "normal"})
+                ],
+                    style={
+                        "display": "flex",
+                        "alignItems": "center",  # keskittää vaakasuoraan
+                        "marginBottom": "20px"
+                    }),
+
+                # daq.NumericInput(
+                #     id="construction_single_val",
+                #     value=DEFAULTS["construction_single_val"],
+                #     min=0,
+                #     max=100,
+                #     size=70,
+                #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
+                # ),
 
 
+                # daq.NumericInput(
+                #     id="manufacturing_val",
+                #     value=DEFAULTS["manufacturing_val"],
+                #     min=0,
+                #     max=100,
+                #     size=70,
+                #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
+                # ),
 
-                    #prosentit
-                    dcc.Store(id="construction_multistory", data=DEFAULTS["construction_multistory"]),
-                    dcc.Store(id="construction_single", data=DEFAULTS["construction_single"]),
-                    dcc.Store(id="manufacturing", data=DEFAULTS["manufacturing"]),
-                    dcc.Store(id="packaging", data=DEFAULTS["packaging"]),
-                    dcc.Store(id="other", data=DEFAULTS["other"]),
-                    dcc.Store(id="other_construction", data=DEFAULTS["other_construction"]),
-                    dcc.Store(id="non_res_construction", data=DEFAULTS["non_res_construction"]),
+
+                # daq.NumericInput(
+                #     id="packaging_val",
+                #     value=DEFAULTS["packaging_val"],
+                #     min=0,
+                #     max=100,
+                #     size=70,
+                #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
+                # ),
+
+                # # Other
+                # html.Label([
+                #     html.Span("Other uses ", style={"fontWeight": "bold"}),
+                #     html.Span(
+                #         "definition ",
+                #         title=(
+                #             "Includes wood usage by hobbyist woodworkers and DIY projects; advertising and display"
+                #             " structures, wood shingles; fencing; and other miscellaneous items"
+                #         ),
+                #         style={
+                #             "cursor": "help",
+                #             "color": "#007BFF",
+                #             "marginLeft": "5px",
+                #             "fontWeight": "bold"
+                #         }
+                #     ),
+                #
+                #     html.Span(f"(in 2020: {DEFAULTS['other_val']:,.0f})",
+                #               style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
+                # ], style={"display": "block", "marginBottom": "5px"}),
+                #
+                # # Other
+                # html.Div([
+                #     dbc.Input(
+                #         id="other_val",
+                #         type="number",
+                #         value=defaults.get("other_val", (DEFAULTS["other_val"])),
+                #         min=0,
+                #         max=600000,
+                #         step=100,
+                #         style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
+                #     ),
+                #     html.Span(id="other_change", style={"fontWeight": "normal"})
+                # ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
+
+                # daq.NumericInput(
+                #     id="other_val",
+                #     value=DEFAULTS["other_val"],
+                #     min=0,
+                #     max=100,
+                #     size=70,
+                #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
+                # ),
+
+                # html.Label([
+                #     html.Span("Nonresidential construction ", style={"fontWeight": "bold"}),
+                #     html.Span(
+                #         "definition ",
+                #         title=(
+                #             "Includes for example lodging, office, commercial, healthcare, educational, religious, "
+                #             "public safety, as well as infrastructure related construction"
+                #         ),
+                #         style={
+                #             "cursor": "help",
+                #             "color": "#007BFF",
+                #             "marginLeft": "5px",
+                #             "fontWeight": "bold"
+                #         }
+                #     ),
+                #     html.Span(f"(in 2020: {DEFAULTS['non_res_construction_val']:,.0f})",
+                #               style={"fontWeight": "normal", "color": "#666", "fontSize": "13px"})
+                # ], style={"display": "block", "marginBottom": "5px"}),
+                #
+                # html.Div([
+                #     dbc.Input(
+                #         id="non_res_construction_val",
+                #         type="number",
+                #         value=defaults.get("non_res_construction_val", (DEFAULTS["non_res_construction_val"])),
+                #         min=0,
+                #         max=600000,
+                #         step=100,
+                #         style={"width": "100px", "margin": "0 5px 0 0", "textAlign": "right"},
+                #     ),
+                #     html.Span(id="non_res_construction_change", style={"fontWeight": "normal"})
+                # ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
+
+                # daq.NumericInput(
+                #     id="non_res_construction_val",
+                #     value=DEFAULTS["non_res_construction_val"],
+                #     min=0,
+                #     max=100,
+                #     size=70,
+                #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
+                # ),
 
 
-                ], style={
-                    "flex": "1",
-                    "display": "flex",
-                    "flexDirection": "column",
-                    "justifyContent": "flex-start",
-                    "width": "100%",
-                    "minWidth": "0",
-                    "border": "1px solid #ddd",
-                    "borderRadius": "12px",
-                    "padding": "12px",
-                    "marginBottom": "20px",
-                    "backgroundColor": "#fafafa",
-                    "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
-                })
-            ], className='col-3', style={
+                html.P(""),
+                html.Hr(style={
+                    "border": "none",  # remove default border
+                    "borderTop": "2px solid black",  # grey line
+                    "margin": "20px 0"  # vertical spacing
+                }),
+                html.P("*Please note: enter values rounded to the nearest hundred."),
+
+                # daq.NumericInput(
+                #     id="other_construction_val",
+                #     value=DEFAULTS["other_construction_val"],
+                #     min=0,
+                #     max=100,
+                #     size=70,
+                #     style={"display": "block", "margin": "0", "marginBottom": "20px", "textAlign": "right"}
+                # ),
+
+                # prosentit
+       #         dcc.Store(id="construction_multistory", data=DEFAULTS["construction_multistory"]),
+        #        dcc.Store(id="construction_multistory", data=DEFAULTS["construction_multistory"]),
+
+                dcc.Store(id="construction_single", data=DEFAULTS["construction_single"]),
+                dcc.Store(id="manufacturing", data=DEFAULTS["manufacturing"]),
+                dcc.Store(id="packaging", data=DEFAULTS["packaging"]),
+                dcc.Store(id="other", data=DEFAULTS["other"]),
+                dcc.Store(id="other_construction", data=DEFAULTS["other_construction"]),
+                dcc.Store(id="non_res_construction", data=DEFAULTS["non_res_construction"]),
+
+            ], style={
+                "flex": "1",
+                "display": "flex",
+                "flexDirection": "column",
+                "justifyContent": "flex-start",
+                "width": "100%",
+                "minWidth": "0",
+                "border": "1px solid #ddd",
+                "borderRadius": "12px",
+                "padding": "12px",
+                "marginBottom": "20px",
+                "backgroundColor": "#fafafa",
+                "boxShadow": "0 1px 2px rgba(0,0,0,0.05)",
+            })
+        ], className='col-3', style={
                 "flex": "1",
                 "display": "flex",
                 "flexDirection": "column",
                 "justifyContent": "space-between",
                 "width": "100%",
                 "minWidth": "0",
-            }),
-
-
-# Column 4
-
+        }),
         html.Div([
-            html.Div(id="lumber_supply_status"),
-
-
-                html.Div([
-
-                html.Div(id="lumber_supply_text2", style={"marginTop": "20px", "marginBottom": "10px"}),
-                html.Div(id="lumber_demand_status", style={"marginTop": "20px", "marginBottom": "10px"}),
-          #      html.Div(id="lumber_demand_status",
-           #              style={"color": "green", "fontSize": "18px", "marginBottom": "10px"}),
-             #   html.Div(id="lumber_supply_status_text"),
-
-                    html.P(""),
-                    html.Hr(style={
-                        "border": "none",       # remove default border
-                        "borderTop": "2px solid black",  # grey line
-                        "margin": "20px 0"      # vertical spacing
-                    }),
-                    html.P(
-                        "*Please note: Supply and demand must match with an accuracy of 5,000 mcf."),
-
-                ],
-                    id="sd_style_box"),
-
-            html.Div([
-                html.Button("Set section 3 variables to default", id="reset-btn-2", n_clicks=0,
-                            style={
-                                "marginTop": "20px",
-                                "padding": "12px 26px",
-                                "fontWeight": "bold",
-                                "fontSize": "16px",
-                                "color": "white",
-                                "background": "linear-gradient(135deg, #007BFF 0%, #0056D2 100%)",
-                                "border": "none",
-                                "borderRadius": "8px",
-                                "cursor": "pointer",
-                                "boxShadow": "0 4px 8px rgba(0,0,0,0.15)",
-                                "transition": "all 0.2s ease-in-out",
-                            }),
-            ], style={
-                "flex": "1",
-                "display": "flex",
-                "flexDirection": "column",
-                "marginLeft": "20px",
-                "alignItems": "center"}
-            ),
-        ]),
+            dbc.Button(
+                "Set section 3 variables to default",
+                id="reset-btn-2",
+                n_clicks=0,
+                color="primary",
+                style={"width": "300px"}  # haluttu leveys
+            )
+        ], style={
+            "gridColumn": "1 / span 4",  # vie kaikki 4 saraketta
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+        })
 
         ], style={
         "gap": "30px",
@@ -1853,6 +1878,7 @@ html.Div([
         "width": "100%",
         "marginTop": "50px",
     }),
+
 
 
 
@@ -1878,9 +1904,7 @@ html.Div([
         ),
 
         html.P(""),
-        html.H3("In your vision, how important is it that the forest-based sector...", style={"gridColumn": "1 / -1", "marginBottom": "20px"}),
-
-
+        html.H2("In your opinion, how important is it that the 2060 forest-based sector in New England: ", style={"gridColumn": "1 / -1", "marginBottom": "20px"}),
         html.Div(
             [
 
@@ -1939,50 +1963,52 @@ html.Div([
         "margin": "20px 0"  # vertical spacing
     }),
 
-    html.Div([
-    # --- Submit-painike ---
-    html.Button("Submit your responses and logout", id="submit-btn", n_clicks=0,
+        html.Div([
+            # --- Submit-painike ---
+            dbc.Button(
+                "Submit your responses and logout",
+                id="submit-btn",
+                n_clicks=0,
+                color="primary",
                 style={
                     "padding": "12px 0",
                     "fontWeight": "bold",
                     "fontSize": "16px",
-                    "color": "white",
-                    "background": "linear-gradient(135deg, #007BFF 0%, #0056D2 100%)",
-                    "border": "none",
                     "borderRadius": "8px",
                     "cursor": "pointer",
                     "boxShadow": "0 4px 8px rgba(0,0,0,0.15)",
                     "transition": "all 0.2s ease-in-out",
                     "flex": "1",
                     "marginRight": "10px"
+                }
+            ),
 
-                }),
-
-    html.Button("Logout without updating responses", id="logout-btn", n_clicks=0,
+            dbc.Button(
+                "Logout without updating responses",
+                id="logout-btn",
+                n_clicks=0,
+                color="danger",
                 style={
                     "padding": "12px 0",
                     "fontWeight": "bold",
                     "fontSize": "16px",
-                    "color": "white",
-                    "background": "linear-gradient(135deg, #FF4B4B 0%, #D20000 100%)",
-                    "border": "none",
                     "borderRadius": "8px",
                     "cursor": "pointer",
                     "boxShadow": "0 4px 8px rgba(0,0,0,0.15)",
                     "transition": "all 0.2s ease-in-out",
                     "flex": "1"
-                }),
+                }
+            ),
 
-    ], style={
-        "display": "flex",
-        "flexDirection": "row",
-        "alignItems": "center",
-        "marginTop": "20px",
-        "maxWidth": "800px",
-        "marginLeft": "auto",
-        "marginRight": "auto"
-    }
-        ),
+        ], style={
+            "display": "flex",
+            "flexDirection": "row",
+            "alignItems": "center",
+            "marginTop": "20px",
+            "maxWidth": "800px",
+            "marginLeft": "auto",
+            "marginRight": "auto"
+        }),
 
     # --- Placeholder for message returned by callback ---
     html.Div(
@@ -2099,13 +2125,15 @@ def ensure_user_defaults(email):
             "fuelshare",
             "import_lumber",
             "import_paper",
-            "construction_multistory_val",
+            "large_construction_val",
+     #       "construction_multistory_val",
             "construction_single_val",
             "manufacturing_val",
-            "packaging_val",
-            "other_val",
+            "packaging_and_other_val",
+          #  "packaging_val",
+          #  "other_val",
             "other_construction_val",
-            "non_res_construction_val",
+         #   "non_res_construction_val",
             "recovery_timber",
             "logging_intensity",
             "regional_economy",
@@ -2122,7 +2150,7 @@ def ensure_user_defaults(email):
             "submit_count",
             "logout_without_responding",
             "elapsed_time_seconds",
-            "logins"
+            "logins",
         ]
 
         # Rakennetaan arvot: käytetään DEFAULTS jos olemassa, muuten 0
@@ -2296,13 +2324,15 @@ def increment_login_count(user_email):
 
 @app.callback(
     [
-        Output("construction_multistory_val", "value"),
+        Output("large_construction_val", "value"),
+#        Output("construction_multistory_val", "value"),
         Output("construction_single_val", "value"),
         Output("manufacturing_val", "value"),
-        Output("packaging_val", "value"),
-        Output("other_val", "value"),
+        Output("packaging_and_other_val", "value"),
+       # Output("packaging_val", "value"),
+       # Output("other_val", "value"),
         Output("other_construction_val", "value"),
-        Output("non_res_construction_val", "value"),
+     #   Output("non_res_construction_val", "value"),
         Output("lumbershare", "value"),
         Output("papershare", "value"),
         Output("fuelshare", "value"),
@@ -2321,13 +2351,15 @@ def reset_input_fields(n_clicks2):
     # --- Kerätään palautusarvot listaan (kuten reset_defaults) ---
     values = []
     values += [
-        int(DEFAULTS["construction_multistory_val"]),
+        int(DEFAULTS["large_construction_val"]),
+#        int(DEFAULTS["construction_multistory_val"]),
         int(DEFAULTS["construction_single_val"]),
         int(DEFAULTS["manufacturing_val"]),
-        int(DEFAULTS["packaging_val"]),
-        int(DEFAULTS["other_val"]),
+        int(DEFAULTS["packaging_and_other_val"]),
+      #  int(DEFAULTS["packaging_val"]),
+      #  int(DEFAULTS["other_val"]),
         int(DEFAULTS["other_construction_val"]),
-        int(DEFAULTS["non_res_construction_val"]),
+#        int(DEFAULTS["non_res_construction_val"]),
         int(DEFAULTS["lumbershare"]),
         int(DEFAULTS["papershare"]),
         int(DEFAULTS["fuelshare"]),
@@ -2430,14 +2462,15 @@ INPUT_ORDER = [
     "paper",
     "fuelwood",
     "from_lumber_to_pulp",
-    "construction_multistory_val",
+    "large_construction_val",
+   # "construction_multistory_val",
     "construction_single_val",
     "manufacturing_val",
-    "packaging_val",
-    "other_val",
-    "non_res_construction_val",
+    "packaging_and_other_val",
+  #  "packaging_val",
+  #  "other_val",
+ #   "non_res_construction_val",
     "other_construction_val",
-
 ]
 
 @app.callback(
@@ -2457,20 +2490,25 @@ INPUT_ORDER = [
         Output("fuel_supply_text", "children"),
         Output("total_logging", "children"),
         Output("timber_supply", "children"),
-        Output("construction_multistory_val", "max"),
+        Output("large_construction_val", "max"),
+    #    Output("construction_multistory_val", "max"),
         Output("construction_single_val", "max"),
         Output("manufacturing_val", "max"),
-        Output("packaging_val", "max"),
-        Output("other_val", "max"),
+        Output("packaging_and_other_val", "max"),
+     #   Output("packaging_val", "max"),
+     #   Output("other_val", "max"),
         Output("other_construction_val", "max"),
-        Output("non_res_construction_val", "max"),
-        Output("construction_multistory_change", "children"),
+     #   Output("non_res_construction_val", "max"),
+        Output("large_construction_change", "children"),
+     #   Output("construction_multistory_change", "children"),
         Output("construction_single_change", "children"),
         Output("manufacturing_change", "children"),
-        Output("packaging_change", "children"),
-        Output("other_change", "children"),
-        Output("non_res_construction_change", "children"),
-        Output("other_construction_change", "children")
+        Output("packaging_and_other_change", "children"),
+     #   Output("packaging_change", "children"),
+    #    Output("other_change", "children"),
+     #   Output("non_res_construction_change", "children"),
+        Output("other_construction_change", "children"),
+        Output("lumber-bar-chart", "figure")
 
         #     Output("construction_multistory", "children")
     ],
@@ -2500,15 +2538,17 @@ INPUT_ORDER = [
         State("paper", "data"),
         State("fuelwood", "data"),
         State("from_lumber_to_pulp", "data"),
-        Input("construction_multistory_val", "value"),
+        Input("large_construction_val", "value"),
+     #   Input("construction_multistory_val", "value"),
         Input("construction_single_val", "value"),
         Input("manufacturing_val", "value"),
-        Input("packaging_val", "value"),
-        Input("other_val", "value"),
-        Input("non_res_construction_val", "value"),
+        Input("packaging_and_other_val", "value"),
+     #   Input("packaging_val", "value"),
+     #   Input("other_val", "value"),
+     #   Input("non_res_construction_val", "value"),
         Input("other_construction_val", "value"),
         Input("reset-btn-1", "n_clicks"),
-        Input("reset-btn-2", "n_clicks")
+        Input("reset-btn-2", "n_clicks"),
     ],
 )
 def update_all_charts(*vals):
@@ -2519,7 +2559,6 @@ def update_all_charts(*vals):
 
 
     vals_int = [float(v) if v is not None else 0 for v in vals]
-
     data = dict(zip(INPUT_ORDER, vals_int))
 
     keys_btn1 = ["protWoodlands", "unprotectedForest", "developed", "farmland", "wildlands"]
@@ -2531,25 +2570,29 @@ def update_all_charts(*vals):
         "import_lumber",
         "import_paper",
         "recovery_timber",
-        "construction_multistory_val",
+        "large_construction_val",
+    #    "construction_multistory_val",
         "construction_single_val",
         "manufacturing_val",
-        "packaging_val",
-        "other_val",
+        "packaging_and_other_val",
+#        "packaging_val",
+ #       "other_val",
         "other_construction_val",
-        "non_res_construction_val"
+     #   "non_res_construction_val",
     ]
 
     total_shares = data["lumbershare"] + data["papershare"] + data["fuelshare"]
 
     total_enduse = round(
-        data["construction_multistory_val"] +
+        data["large_construction_val"] +
+   #     data["construction_multistory_val"] +
         data["construction_single_val"] +
         data["manufacturing_val"] +
-        data["packaging_val"] +
-        data["other_val"] +
-        data["other_construction_val"] +
-        data["non_res_construction_val"]
+        data["packaging_and_other_val"] +
+  #      data["packaging_val"] +
+  #      data["other_val"] +
+        data["other_construction_val"]
+     #   data["non_res_construction_val"]
     , -2)
 
     total_logging = data["logging_intensity"] * (((data["unprotectedForest"] + data["protWoodlands"]))/100 * 40000)
@@ -2609,6 +2652,7 @@ def update_all_charts(*vals):
      #   "borderBottom": "3px double black",
         "backgroundColor": "#d4f4dd"
     }
+
 
     # --- 1️⃣ Capacity (lumber/paper/fuel) ---
     if abs(total_shares - 100) > 0.01:
@@ -2705,14 +2749,15 @@ def update_all_charts(*vals):
 
 
     else:
-
-        data["construction_multistory_val"] = int(data["construction_multistory_val"])
+        data["large_construction_val"] = int(data["large_construction_val"])
+     #   data["construction_multistory_val"] = int(data["construction_multistory_val"])
         data["construction_single_val"] = int(data["construction_single_val"])
         data["manufacturing_val"] = int(data["manufacturing_val"])
-        data["packaging_val"] = int(data["packaging_val"])
-        data["other_val"] = int(data["other_val"])
+        data["packaging_and_other_val"] = int(data["packaging_and_other_val"])
+#        data["packaging_val"] = int(data["packaging_val"])
+#        data["other_val"] = int(data["other_val"])
         data["other_construction_val"] = int(data["other_construction_val"])
-        data["non_res_construction_val"] = int(data["non_res_construction_val"])
+     #   data["non_res_construction_val"] = int(data["non_res_construction_val"])
       #  lumber_demand_text = f"Demand {round(total_enduse, -2):,.0f}"
      #   lumber_demand_style = {"color": "red"}
 
@@ -2727,11 +2772,14 @@ def update_all_charts(*vals):
 
 
 
-
-    # 1. Construction multistory
-    construction_multistory_str, inc_construction_multistory_pct = format_demand_change(
-        data["construction_multistory_val"], DEFAULTS["construction_multistory_val"]
+    # 1. large construction
+    large_construction_str, inc_large_construction_pct = format_demand_change(
+        data["large_construction_val"], DEFAULTS["large_construction_val"]
     )
+    # 1. Construction multistory
+ #   construction_multistory_str, inc_construction_multistory_pct = format_demand_change(
+  #      data["construction_multistory_val"], DEFAULTS["construction_multistory_val"]
+  #  )
 
     # 2. Construction single
     construction_single_str, inc_construction_single_pct = format_demand_change(
@@ -2743,20 +2791,23 @@ def update_all_charts(*vals):
         data["manufacturing_val"], DEFAULTS["manufacturing_val"]
     )
 
-    # 4. Packaging
-    packaging_str, inc_packaging_pct = format_demand_change(
-        data["packaging_val"], DEFAULTS["packaging_val"]
+    packaging_and_other_str, inc_packaging_and_other_pct = format_demand_change(
+        data["packaging_and_other_val"], DEFAULTS["packaging_and_other_val"]
     )
-
-    # 5. Other
-    other_str, inc_other_pct = format_demand_change(
-        data["other_val"], DEFAULTS["other_val"]
-    )
+    # # 4. Packaging
+    # packaging_str, inc_packaging_pct = format_demand_change(
+    #     data["packaging_val"], DEFAULTS["packaging_val"]
+    # )
+    #
+    # # 5. Other
+    # other_str, inc_other_pct = format_demand_change(
+    #     data["other_val"], DEFAULTS["other_val"]
+    # )
 
     # 6. Non res. Construction
-    non_res_construction_str, inc_non_res_construction_pct = format_demand_change(
-        data["non_res_construction_val"], DEFAULTS["non_res_construction_val"]
-    )
+ #   non_res_construction_str, inc_non_res_construction_pct = format_demand_change(
+ #       data["non_res_construction_val"], DEFAULTS["non_res_construction_val"]
+ #   )
 
     # 7. Other Construction
     other_construction_str, inc_other_construction_pct = format_demand_change(
@@ -2812,7 +2863,7 @@ def update_all_charts(*vals):
         reset_btn_1 =+ 1
         for key in keys_btn1:
             data[key] = DEFAULTS[key]
-        data["construction_multistory_val"] = (DEFAULTS["construction_multistory_val"])
+      #  data["construction_multistory_val"] = (DEFAULTS["construction_multistory_val"])
         # Recalculate dependent values
         total_logging = data["logging_intensity"] * ((data["unprotectedForest"] + data["protWoodlands"]) / 100 * 40000)
         data["lumber"] = total_logging * (data["lumbershare"] / 100)
@@ -2833,6 +2884,8 @@ def update_all_charts(*vals):
         data["fuelwood"] = total_logging * (data["fuelshare"] / 100)
         sankey_fig = make_sankey(data)
 
+    bar_fig = make_lumber_supply_demand_bar(data)
+
     return (
         data,
         sankey_fig,
@@ -2849,23 +2902,132 @@ def update_all_charts(*vals):
         fuel_supply_text,
         total_logging_text,
         timber_supply_text,
+
         lumber_supply,
         lumber_supply,
         lumber_supply,
         lumber_supply,
         lumber_supply,
-        lumber_supply,
-        lumber_supply,
-        html.Span(construction_multistory_str),
+
+
+        html.Span(large_construction_str),
+    #    html.Span(construction_multistory_str),
         html.Span(construction_single_str),
         html.Span(manufacturing_str),
-        html.Span(packaging_str),
-        html.Span(other_str),
-        html.Span(non_res_construction_str),
+        html.Span(packaging_and_other_str),
+     #   html.Span(other_str),
+      #  html.Span(non_res_construction_str),
         html.Span(other_construction_str),
+        bar_fig
 
     )
 
+def make_lumber_supply_demand_bar(data):
+    """
+    Luo pinotun barin supplylle ja demandille.
+    data: dict, jossa on kaikki tarvittavat komponentit
+    """
+
+    fig = go.Figure()
+
+   # total_enduse = data["large_construction_val"] + data["construction_single_val"] + data["manufacturing_val"] + data["packaging_and_other_val"] + data["other_construction_val"]
+
+    # --- Supply-osat ---
+    supply_components = [
+        round((data["lumbershare"] / 100 * data["logging_intensity"] * ((data["unprotectedForest"] + data["protWoodlands"])/100 * 40000) - 0.333*data["lumber"] + data["recovery_timber"]), 0),
+        data.get("import_lumber", 0)
+    ]
+    lumber_supply = int(sum(supply_components))
+    supply_labels = ["Lumber", "Lumber import"]
+
+    for label, val in zip(supply_labels, supply_components):
+        fig.add_bar(
+            name=label,
+            x=["Supply"],
+            y=[val],
+            hovertemplate=(
+                "<b>Supply</b><br>"
+                f"{label}<br>"
+                "Volume: %{y:,.0f} mcf"
+                "<extra></extra>"
+            )
+        )
+
+    # --- Demand-osat ---
+    demand_components = [
+        data["large_construction_val"],
+        data["manufacturing_val"],
+        data["packaging_and_other_val"],
+        data["other_construction_val"],
+        data["construction_single_val"],
+
+    ]
+    demand_labels = [
+        "Large-scale construction",
+        "Manufacturing",
+        "Packaging and other enduses",
+        "Residential repair",
+        "Single-family construction",
+    ]
+
+    for label, val in zip(reversed(demand_labels), reversed(demand_components)):
+        fig.add_bar(
+            name=label,
+            x=["Demand"],
+            y=[val],
+            hovertemplate=(
+                "<b>Demand</b><br>"
+                f"{label}<br>"
+                "Volume: %{y:,.0f} mcf"
+                "<extra></extra>"
+            )
+        )
+
+    # Pinottu
+    fig.update_layout(
+        dragmode=False,
+        margin=dict(
+            l=10,
+            r=10,
+            t=30,
+            b=20
+        ),
+        title=" ",
+      #  yaxis_title=" ",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        xaxis_title="",
+        showlegend=False,
+        barmode="stack",
+        bargap=0.4,
+        hoverlabel=dict(
+            bgcolor="white",
+            font_size=18,
+            font_family="Arial",
+            align="left"
+        )
+    )
+
+    fig.update_xaxes(
+        tickfont=dict(
+            family="Arial",
+            size=18,
+            color="black"
+        )
+    )
+    fig.add_shape(
+        type="rect",
+        x0=-0.5, x1=1.5,  # x-akselin kattavuus: koko Supply–Demand alue
+        y0=lumber_supply - 5000,
+        y1=lumber_supply + 5000,
+        fillcolor="green",
+        opacity=0.1,
+        layer="below",
+        line_width=0,
+    )
+
+
+    return fig
 
 '''
 @app.callback(
@@ -2902,8 +3064,6 @@ states += [
     State("other_construction", "data"),
     State("non_res_construction", "data")
 ]
-
-
 
 
 
@@ -3002,6 +3162,7 @@ def save_responses_to_db(user_inputs, likert_answers):
     full_data.update(likert_answers)
 
     email = full_data.get("email")
+    print(email)
     if not email:
         raise ValueError("Missing email")
 
@@ -3012,7 +3173,7 @@ def save_responses_to_db(user_inputs, likert_answers):
 
     protected = {"reset_btn_1", "reset_btn_2", "id"}
     update_cols = [cname for cname in cols if cname not in protected and cname != "email"]
-
+    print(update_cols)
     update_clause = ", ".join([f"{col}=excluded.{col}" for col in update_cols])
     update_clause += ", submit_count = COALESCE(responses.submit_count, 0) + 1"
 
@@ -3042,13 +3203,15 @@ def save_responses_to_db(user_inputs, likert_answers):
      State("fuelshare", "value"),
      State("import_lumber", "value"),
      State("import_paper", "value"),
-     State("construction_multistory_val", "value"),
+     State("large_construction_val", "value"),
+  #   State("construction_multistory_val", "value"),
      State("construction_single_val", "value"),
      State("manufacturing_val", "value"),
-     State("packaging_val", "value"),
-     State("other_val", "value"),
+     State("packaging_and_other_val", "value"),
+#     State("packaging_val", "value"),
+#     State("other_val", "value"),
      State("other_construction_val", "value"),
-     State("non_res_construction_val", "value"),
+  #   State("non_res_construction_val", "value"),
      State("recovery_timber", "value"),
      State("logging_intensity", "value"),
     State("state-checklist", "value"),
@@ -3083,13 +3246,15 @@ def submit_responses_callback(
     fuelshare,
     import_lumber,
     import_paper,
-    construction_multistory_val,
+    large_construction_val,
+ #   construction_multistory_val,
     construction_single_val,
     manufacturing_val,
-    packaging_val,
-    other_val,
+    packaging_and_other_val,
+  #  packaging_val,
+  #  other_val,
     other_construction_val,
-    non_res_construction_val,
+ #   non_res_construction_val,
     recovery_timber,
     logging_intensity,
     state_checklist,
@@ -3124,13 +3289,15 @@ def submit_responses_callback(
         "fuelshare": fuelshare,
         "import_lumber": import_lumber,
         "import_paper": import_paper,
-        "construction_multistory_val": construction_multistory_val,
+        "large_construction_val": large_construction_val,
+     #   "construction_multistory_val": construction_multistory_val,
         "construction_single_val": construction_single_val,
         "manufacturing_val": manufacturing_val,
-        "packaging_val": packaging_val,
-        "other_val": other_val,
+        "packaging_and_other_val": packaging_and_other_val,
+     #   "packaging_val": packaging_val,
+     #   "other_val": other_val,
         "other_construction_val": other_construction_val,
-        "non_res_construction_val": non_res_construction_val,
+     #   "non_res_construction_val": non_res_construction_val,
         "recovery_timber": recovery_timber,
         "logging_intensity": logging_intensity,
         "state_checklist": state_checklist,
@@ -3169,7 +3336,7 @@ def submit_responses_callback(
             + (waterandwetlands or 0)
     )
 
-    total_enduse = construction_multistory_val + construction_single_val + manufacturing_val + packaging_val + other_val + other_construction_val +non_res_construction_val
+    total_enduse = large_construction_val + construction_single_val + manufacturing_val + packaging_and_other_val + other_construction_val
     total_lumber_logging = (logging_intensity * (protwoodlands + unprotectedforest) / 100 * 40000) * (lumbershare/100)
     from_lumber_to_pulp = total_lumber_logging * 0.333
     lumber_supply = round(total_lumber_logging + import_lumber + recovery_timber - from_lumber_to_pulp, -2)
@@ -3332,13 +3499,15 @@ def populate_form_from_db(db_data, likert_questions):
         "fuelshare": db_data.get("fuelshare"),
         "import_lumber": db_data.get("import_lumber"),
         "import_paper": db_data.get("import_paper"),
-        "construction_multistory_val": db_data.get("construction_multistory_val"),
+        "large_construction_val": db_data.get("large_construction_val"),
+    #    "construction_multistory_val": db_data.get("construction_multistory_val"),
         "construction_single_val": db_data.get("construction_single_val"),
         "manufacturing_val": db_data.get("manufacturing_val"),
-        "packaging_val": db_data.get("packaging_val"),
-        "other_val": db_data.get("other_val"),
+        "packaging_and_other_val": db_data.get("packaging_and_other_val"),
+#        "packaging_val": db_data.get("packaging_val"),
+#        "other_val": db_data.get("other_val"),
         "other_construction_val": db_data.get("other_construction_val"),
-        "non_res_construction_val": db_data.get("non_res_construction_val"),
+     #   "non_res_construction_val": db_data.get("non_res_construction_val"),
         "recovery_timber": db_data.get("recovery_timber"),
         "logging_intensity": db_data.get("logging_intensity"),
 
@@ -3369,7 +3538,6 @@ def populate_form_from_db(db_data, likert_questions):
         q_id = q["id"]
         val = db_data.get(q_id)  # voi olla None jos ei tallennettu
         defaults[q_id] = val
-    print(defaults)
 
     return defaults
 
@@ -3495,7 +3663,7 @@ def update_ranking_status(values):
 
     if len(set(chosen)) < 7:
         return (
-            "❌ Each rank (1–7) must be used exactly once",
+            "Please rank (1–7) once only",
             {"color": "red"},
         )
 
