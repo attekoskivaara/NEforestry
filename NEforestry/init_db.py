@@ -169,7 +169,9 @@ def create_database():
         submit_count INTEGER,
         logout_without_responding INTEGER,
         logins INTEGER,
-        elapsed_time_seconds INTEGER
+        elapsed_time_seconds INTEGER,
+        
+        failed_attempts_share INTEGER
     )
     """)
 

@@ -1433,8 +1433,6 @@ html.Div([
             html.Div(id="lumber_supply_status"),
 
             html.Div([
-                html.Div(id="lumber_supply_text2", style={"marginTop": "20px", "marginBottom": "10px"}),
-                html.Div(id="lumber_demand_status", style={"marginTop": "20px", "marginBottom": "10px"}),
 
                 # --- ADDED GRAPH HERE ---
                 dcc.Graph(id="lumber-bar-chart",
@@ -2481,11 +2479,11 @@ INPUT_ORDER = [
         Output("capacity-status", "style"),
         Output("share_style_box", "style"),
         Output("sd_style_box", "style"),
-        Output("lumber_demand_status", "children"),
+   #     Output("lumber_demand_status", "children"),
         Output("lumber_supply_status", "children"),
         Output("lumber_supply_status", "style"),
         Output("lumber_supply_text", "children"),
-        Output("lumber_supply_text2", "children"),
+  #      Output("lumber_supply_text2", "children"),
         Output("pulp_supply_text", "children"),
         Output("fuel_supply_text", "children"),
         Output("total_logging", "children"),
@@ -2893,11 +2891,11 @@ def update_all_charts(*vals):
         status_style,
         share_style_box,
         sd_style_box,
-        lumber_demand_text,
+    #    lumber_demand_text,
         lumber_supply_status_text,
         lumber_supply_status_style,
         lumber_supply_text,
-        lumber_supply_text2,
+    #    lumber_supply_text2,
         pulp_supply_text,
         fuel_supply_text,
         total_logging_text,
@@ -2938,6 +2936,7 @@ def make_lumber_supply_demand_bar(data):
         data.get("import_lumber", 0)
     ]
     lumber_supply = int(sum(supply_components))
+    lumber_supply_rounded = round(lumber_supply, -2)
     supply_labels = ["Lumber", "Lumber import"]
 
     for label, val in zip(supply_labels, supply_components):
@@ -2952,6 +2951,16 @@ def make_lumber_supply_demand_bar(data):
                 "<extra></extra>"
             )
         )
+
+        # Lisää annotation koko pylvään päälle
+    fig.add_annotation(
+        x="Supply",
+        y=lumber_supply_rounded,  # koko pinon korkeus
+        text=f"{lumber_supply_rounded:,.0f}",
+        showarrow=False,
+        yanchor="bottom",  # tekstin alareuna pylvään huipulla
+        font=dict(size=18, color="black")
+    )
 
     # --- Demand-osat ---
     demand_components = [
@@ -2982,6 +2991,16 @@ def make_lumber_supply_demand_bar(data):
                 "<extra></extra>"
             )
         )
+
+    total_demand = round(sum(demand_components) / 100) * 100
+    fig.add_annotation(
+        x="Demand",
+        y=sum(demand_components),
+        text=f"{total_demand:,.0f}",
+        showarrow=False,
+        yanchor="bottom",
+        font=dict(size=18, color="black")
+    )
 
     # Pinottu
     fig.update_layout(
