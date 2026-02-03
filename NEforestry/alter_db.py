@@ -19,8 +19,7 @@ else:
 # Kaikki lisättävät sarakkeet {nimi: SQL-tyyppi}
 
 NEW_COLUMNS = {
-    "large_construction_val": "REAL",
-    "packaging_and_other_val": "REAL"
+    "multifunctional_use": "INTEGER"
 }
 
 def column_exists(cursor, table, column):

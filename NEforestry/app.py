@@ -219,7 +219,9 @@ likert_questions = [
     {"id": "local_sourcing", "text": "favors sourcing services and products from local companies?"},
     {"id": "employment_conditions", "text": "provides stable employment and fair conditions?"},
     {"id": "training_development", "text": "strengthens regional human capital through training?"},
-  #  {"id": "community_engagement", "text": "collaborates with local communities?"}
+    {"id": "multifunctional_use", "text": "promotes multifunctional forest use, for example through continuous cover forestry management?"},
+
+    #  {"id": "community_engagement", "text": "collaborates with local communities?"}
 ]
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
@@ -1898,7 +1900,7 @@ html.Div([
         }),
 
         html.P(
-            "Please rank the following statements from 1 (most important) to 7 (least important)."
+            "Please rank the following statements from 1 (most important) to 8 (least important)."
         ),
 
         html.P(""),
@@ -2080,7 +2082,8 @@ def ensure_user_defaults(email):
         "local_sourcing",
         "employment_conditions",
         "training_development",
-        "community_engagement"
+        "community_engagement",
+        "multifunctional_use"
     ]
 
     text_boxes = [
@@ -2143,6 +2146,7 @@ def ensure_user_defaults(email):
             "employment_conditions",
             "training_development",
             "community_engagement",
+            "multifunctional_use",
             "reset_btn_1",
             "reset_btn_2",
             "submit_count",
@@ -3632,7 +3636,14 @@ from dash import html, dcc
 def ranking_matrix(likert_questions, ranking_defaults=None):
     header_row = html.Tr([
         html.Th(" ", style={"textAlign": "left", "width": "40%", "border": "none", "padding": "8px 4px"}),
-        html.Th("Importance", style={"textAlign": "center", "width": "60%", "border": "none", "padding": "8px 4px"})
+        html.Th(
+            html.Div([
+                "Importance",
+                html.Div("1 = Most important, 8 = Least important",
+                         style={"fontSize": "smaller", "fontStyle": "italic"})
+            ]),
+            style={"textAlign": "center", "width": "60%", "border": "none", "padding": "8px 4px"}
+        )
     ])
 
     body_rows = []
@@ -3643,7 +3654,7 @@ def ranking_matrix(likert_questions, ranking_defaults=None):
                 html.Td(
                     dcc.RadioItems(
                         id={"type": "rank-radio", "index": q["id"]},
-                        options=[{"label": str(i), "value": i} for i in range(1, 8)],
+                        options=[{"label": str(i), "value": i} for i in range(1, 9)],
                         value=ranking_defaults.get(q["id"]) if ranking_defaults else None,
                         inline=True,
                         labelStyle={
@@ -3674,15 +3685,15 @@ def ranking_matrix(likert_questions, ranking_defaults=None):
 def update_ranking_status(values):
     chosen = [v for v in values if v is not None]
 
-    if len(chosen) < 7:
+    if len(chosen) < 8:
         return (
-            "⚠️ Please assign a rank (1–7) to every statement",
+            "⚠️ Please assign a rank (1–8) to every statement",
             {"color": "red"},
         )
 
-    if len(set(chosen)) < 7:
+    if len(set(chosen)) < 8:
         return (
-            "Please rank (1–7) once only",
+            "Please rank (1–8) once only",
             {"color": "red"},
         )
 
