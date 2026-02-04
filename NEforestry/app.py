@@ -1465,7 +1465,8 @@ html.Div([
         html.Div([
             html.H4("3.3. Lumber demand by enduse", style={'fontWeight': 'bold', "marginBottom": "10px"}),
 
-
+                #             "Includes for example lodging, office, commercial, healthcare, educational, religious, "
+                #             "public safety, as well as infrastructure related construction"
 
             html.Div([
 
@@ -1474,7 +1475,8 @@ html.Div([
                     html.Span(
                         "definition ",
                         title=(
-                            "Includes also mobile and modular housing units"
+                            "Includes lodging, office, commercial, healthcare, educational, mobile and modular housing units "
+                            "as well as infrastructure related construction"
                         ),
                         style={
                             "cursor": "help",
@@ -1543,14 +1545,16 @@ html.Div([
                     html.Span(id="manufacturing_change", style={"fontWeight": "normal"})
                 ], style={"display": "flex", "alignItems": "center", "marginBottom": "20px"}),
 
+                #             "Includes wood usage by hobbyist woodworkers and DIY projects; advertising and display"
+                #             " structures, wood shingles; fencing; and other miscellaneous items"
                 # Packaging
                 html.Label([
                     html.Span("Packaging and other ", style={"fontWeight": "bold"}),
                     html.Span(
                         "definition ",
                         title=(
-                            "Includes for example pallets, wood boxes, crates, hampers, baskets, and other"
-                            " wooden containers"
+                            "Packaging includes for example pallets, wood boxes, crates, hampers, baskets, and other"
+                            " wooden containers. Other includes wood usage by hobbyist woodworkers, DIY projects, wood shingles and fencing"
                         ),
                         style={
                             "cursor": "help",
@@ -2942,7 +2946,7 @@ def make_lumber_supply_demand_bar(data):
     ]
     lumber_supply = int(sum(supply_components))
     lumber_supply_rounded = round(lumber_supply, -2)
-    supply_labels = ["Lumber", "Lumber import"]
+    supply_labels = ["Lumber harvested", "Lumber import"]
 
     for label, val in zip(supply_labels, supply_components):
         fig.add_bar(
