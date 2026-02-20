@@ -1,51 +1,39 @@
+import csv
 import random
-from openpyxl import load_workbook, Workbook
 
-input_file = "recipients_test.xlsx"
-output_file = "recipients_test2.xlsx"
+input_file = "recipients_test.csv"
+output_file = "recipients_test2.csv"
 
 def generate_password():
     return str(random.randint(10000, 99999))
 
-# Lue input
-wb_input = load_workbook(input_file)
-ws_input = wb_input.active
+# Lue input CSV
+with open(input_file, newline="", encoding="utf-8-sig") as f:
+    reader = csv.DictReader(f, delimiter=';')  # <-- important!
+    rows = list(reader)
 
-# Selvitä sarakkeet
-headers = {}
-for col in range(1, ws_input.max_column + 1):
-    value = ws_input.cell(row=1, column=col).value
-    if value:
-        headers[value.strip().lower()] = col
+# Luo output CSV
+with open(output_file, "w", newline="", encoding="utf-8") as f:
+    fieldnames = ["email", "first_name", "username", "password"]
+    writer = csv.DictWriter(f, fieldnames=fieldnames)
+    writer.writeheader()
 
-if "email" not in headers:
-    raise ValueError("Input file must contain 'email' column")
+    for row in rows:
+        email = row.get("email")
+        if not email:
+            continue
 
-# Luo output
-wb_output = Workbook()
-ws_output = wb_output.active
-ws_output.title = "Recipients"
+        # Ota first_name sellaisenaan, jos löytyy
+        name = row.get("first_name", "")
 
-ws_output.append(["email", "first_name", "username", "password"])
+        password = generate_password()
+        username = email  # sama kuin sähköposti
 
-for row in range(2, ws_input.max_row + 1):
+        writer.writerow({
+            "email": email,
+            "first_name": name,
+            "username": username,
+            "password": password
+        })
 
-    email = ws_input.cell(row=row, column=headers["email"]).value
-    if not email:
-        continue
-
-    # Ota name sellaisenaan jos löytyy
-    name = ""
-    if "first_name" in headers:
-        name_value = ws_input.cell(row=row, column=headers["first_name"]).value
-        if name_value:
-            name = name_value  # ei splitata, ei muokata
-
-    password = generate_password()
-    username = email
-
-    ws_output.append([email, name, username, password])
-
-wb_output.save(output_file)
-
-print("recipients.xlsx created successfully!")
+print(f"{output_file} created successfully!")
