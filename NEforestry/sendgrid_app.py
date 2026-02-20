@@ -19,7 +19,7 @@ print(f"From email: {FROM_EMAIL}")           # Varmista että email on verifioit
 
 
 # Oletetaan, että CSV sisältää sarakkeet: email, first_name, username, password
-recipients_file = "recipients_test.csv"
+recipients_file = "recipients_test2.csv"
 
 recipients = []
 with open(recipients_file, newline="", encoding="utf-8-sig") as csvfile:
@@ -50,13 +50,13 @@ for r in recipients:
 
 We need your expertise. Your experience in forest management and decision-making makes you a key contributor to understanding how New England’s forest landscapes are shaped.
 
-By sharing your insights on preferred management practices, you will help guide the development of the desired landscape and forest management in New England. Additionally, by participating in the survey you will learn about the current state of New England’s forests and how they are utilized, providing a unique perspective on trade-offs and management decisions.
+By sharing your insights on preferred management practices, you have a chance to influence the future of New England’s landscape and forest management. Additionally, by participating in the survey you will learn about the current state of New England’s forests and how they are utilized, providing a unique perspective on trade-offs and management decisions.
 
 Your survey login credentials are:
 Username: {username}
 Password: {password}
 
-Please take the survey here: https://hulicupter.pythonanywhere.com/
+Please take the survey here: https://www.neforestvisions.org/
 
 Thank you for contributing to a better understanding of forest management and ecosystem service governance. Your input will directly inform future planning and decision-making in the region.
 
@@ -65,7 +65,10 @@ If you know someone else who should participate, please feel free to share their
 If you have any questions regarding the survey, please feel free to reply to this email.
 
 Best regards,
-Atte
+
+Atte Koskivaara  
+Visiting Postdoctoral Researcher, University of Massachusetts Amherst, USA  
+Researcher, Natural Resources Institute Finland (Luke)
 """
 
     # Luo ja lähetä viesti

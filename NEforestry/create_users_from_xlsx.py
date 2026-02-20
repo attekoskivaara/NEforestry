@@ -1,18 +1,20 @@
 import sqlite3
 import hashlib
-from openpyxl import load_workbook
+import csv
 
-DB_FILE = "users.db"
-EXCEL_FILE = "recipients_test2.xlsx"
+DB_FILE = "users_test.db"
+CSV_FILE = "recipients_test2.csv"
 
 # ---------------------------
 # Helper functions
 # ---------------------------
 
 def hash_password(password):
+    """Hash password with SHA-256"""
     return hashlib.sha256(str(password).encode()).hexdigest()
 
 def create_users_table():
+    """Create users table if it doesn't exist"""
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute("""
@@ -24,8 +26,10 @@ def create_users_table():
     """)
     conn.commit()
     conn.close()
+    print(f"Users table created in {DB_FILE}.")
 
 def add_user(email, password):
+    """Add a user to the database"""
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     try:
@@ -48,16 +52,14 @@ if __name__ == "__main__":
 
     create_users_table()
 
-    wb = load_workbook(EXCEL_FILE)
-    ws = wb.active
+    # Lue CSV (oletetaan semicolon-separointi Excelistä)
+    with open(CSV_FILE, newline="", encoding="utf-8-sig") as f:
+        reader = csv.DictReader(f, delimiter=';')
+        for row in reader:
+            email = row.get("email")
+            password = row.get("password")
 
-    # Oletetaan että headerit ovat:
-    # email | name | username | password
-    for row in ws.iter_rows(min_row=2, values_only=True):
-        email = row[0]
-        password = row[3]
-
-        if email and password:
-            add_user(email.strip(), str(password).strip())
+            if email and password:
+                add_user(email.strip(), password.strip())
 
     print("All users processed.")
