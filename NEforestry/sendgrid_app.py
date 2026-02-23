@@ -29,7 +29,7 @@ with open(recipients_file, newline="", encoding="utf-8-sig") as csvfile:
         recipients.append(row)
 
 # Lähetettävän viestin yleinen osa
-SUBJECT = "Please participate in the New England forestry survey"
+SUBJECT = "Shaping the Future of New England’s Forests: Take Our Survey and Show How You Would Shape It"
 
 sg = SendGridAPIClient(SENDGRID_API_KEY)
 
@@ -48,27 +48,33 @@ for r in recipients:
     # Viestin sisältö
     TEXT = f"""{greeting}
 
-We need your expertise. Your experience in forest management and decision-making makes you a key contributor to understanding how New England’s forest landscapes are shaped.
+You have been identified as a key actor in forest management and its practical implementation based on your experience and expertise. It is therefore especially important to understand your perspective on a central question: What should the future forest landscape and forestry in New England look like?
 
-By sharing your insights on preferred management practices, you have a chance to influence the future of New England’s landscape and forest management. Additionally, by participating in the survey you will learn about the current state of New England’s forests and how they are utilized, providing a unique perspective on trade-offs and management decisions.
+By sharing your insights on preferred land-use priorities and forest management decisions, you will help identify key priorities, trade-offs, and areas of alignment among stakeholders, and will directly inform future landscape planning and forest management discussions across the region.
+
+In addition, participation provides you with an overview of the current state of New England’s forests, how they are currently utilized, and the broader trade-offs involved in management decisions—offering a structured perspective on how different objectives and ecosystem services interact.
 
 Your survey login credentials are:
 Username: {username}
 Password: {password}
 
-Please take the survey here: https://www.neforestvisions.org/
+Please take the survey here:
+https://www.neforestvisions.org/
 
-Thank you for contributing to a better understanding of forest management and ecosystem service governance. Your input will directly inform future planning and decision-making in the region.
+Thank you for contributing to a better understanding of forest management and ecosystem service governance in New England. Your input will directly inform future planning and decision-making in the region.
 
-If you know someone else who should participate, please feel free to share their email with us so we can send them the survey.
+If you know someone else whose expertise would be valuable for this survey, please feel free to share their contact information with us so we can send them an invitation.
 
 If you have any questions regarding the survey, please feel free to reply to this email.
 
 Best regards,
 
-Atte Koskivaara  
-Visiting Postdoctoral Researcher, University of Massachusetts Amherst, USA  
-Researcher, Natural Resources Institute Finland (Luke)
+Atte Koskivaara
+Visiting Postdoctoral Researcher
+University of Massachusetts Amherst, USA
+
+Researcher
+Natural Resources Institute Finland (Luke)
 """
 
     # Luo ja lähetä viesti

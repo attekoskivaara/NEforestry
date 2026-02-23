@@ -2,8 +2,9 @@ import sqlite3
 import hashlib
 import csv
 
+# tietokanta tässä
 DB_FILE = "users_test.db"
-CSV_FILE = "recipients_test2.csv"
+CSV_FILE = "recipients_test_230226.csv"
 
 # ---------------------------
 # Helper functions

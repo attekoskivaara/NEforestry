@@ -1,3 +1,12 @@
+DB notet:
+
+MUISTA .csv tehdä sarakkeittain tiedot
+
+users.db <- käytetty koko kyselyn kehittelyn ajan
+users_test.db <- käytetään kun lähetetään testit omille maileille ja Peggille
+
+
+
 Git haarat: 
 
 origin: likert kysely
