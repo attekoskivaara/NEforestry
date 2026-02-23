@@ -1,3 +1,5 @@
-email;first_name;username;password
-atte.koskivaara@luke.fi;Atte;atte.koskivaara@luke.fi;35214
-attekosk@gmail.com;;attekosk@gmail.com;20569
+email,first_name,username,password
+atte.koskivaara@luke.fi,Atte,atte.koskivaara@luke.fi,83320
+attekosk@gmail.com,,attekosk@gmail.com,72756
+clouston@umass.edu,Peggi,clouston@umass.edu,40870
+akoskivaara@umass.edu,Atte,akoskivaara@umass.edu,32143
