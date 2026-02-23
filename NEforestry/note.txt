@@ -1,5 +1,12 @@
 DB notet:
 
+Pythonanywheressä pitää tehdä:
+	- lisää recipients_2.csv omat mailit testiä varten
+	- Tee uusi users- tietokanta uudella nimellä, mikä rakennettu from: recipients_2.csv
+	- vaihda app.py kiinni uuteen users- tietokantaan
+	- lähetä kutsut
+HALUANKO LÄHETTÄÄ ERISSÄ?
+
 MUISTA .csv tehdä sarakkeittain tiedot
 
 users.db <- käytetty koko kyselyn kehittelyn ajan

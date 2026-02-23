@@ -225,6 +225,8 @@ likert_questions = [
     #  {"id": "community_engagement", "text": "collaborates with local communities?"}
 ]
 
+GA_ID = "G-X71K622RW9"
+
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 
 server = app.server
@@ -2042,6 +2044,12 @@ app.layout = html.Div([
     html.Div(id="page-content"),  # will be either login_layout or survey_layout
     dcc.Store(id="dummy-output"),
 
+    html.Script(children=f"""
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){{dataLayer.push(arguments);}}
+    gtag('js', new Date());
+    gtag('config', '{GA_ID}');
+    """),
 
     dcc.ConfirmDialog(
         id="submit-confirm",
