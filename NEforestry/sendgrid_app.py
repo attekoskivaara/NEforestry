@@ -19,7 +19,7 @@ print(f"From email: {FROM_EMAIL}")           # Varmista että email on verifioit
 
 
 # Oletetaan, että CSV sisältää sarakkeet: email, first_name, username, password
-recipients_file = "recipients_test2.csv"
+recipients_file = "recipients_test_230226.csv"
 
 recipients = []
 with open(recipients_file, newline="", encoding="utf-8-sig") as csvfile:
@@ -29,7 +29,7 @@ with open(recipients_file, newline="", encoding="utf-8-sig") as csvfile:
         recipients.append(row)
 
 # Lähetettävän viestin yleinen osa
-SUBJECT = "Shaping the Future of New England’s Forests: Take Our Survey and Show How You Would Shape It"
+SUBJECT = "Shaping the Future of New England’s Forests: Take Our Interactive Survey and Show How You Would Shape It"
 
 sg = SendGridAPIClient(SENDGRID_API_KEY)
 
