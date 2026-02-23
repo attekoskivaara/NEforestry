@@ -225,9 +225,40 @@ likert_questions = [
     #  {"id": "community_engagement", "text": "collaborates with local communities?"}
 ]
 
-GA_ID = "G-X71K622RW9"
 
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
+
+GA_ID = "G-X71K622RW9"
+
+app.index_string = f"""
+<!DOCTYPE html>
+<html>
+    <head>
+        {{%metas%}}
+        <title>{{%title%}}</title>
+        {{%favicon%}}
+        {{%css%}}
+
+        <!-- Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id={GA_ID}"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){{dataLayer.push(arguments);}}
+            gtag('js', new Date());
+            gtag('config', '{GA_ID}');
+        </script>
+
+    </head>
+    <body>
+        {{%app_entry%}}
+        <footer>
+            {{%config%}}
+            {{%scripts%}}
+            {{%renderer%}}
+        </footer>
+    </body>
+</html>
+"""
 
 server = app.server
 server.secret_key = "supersecretkey123"
@@ -244,10 +275,10 @@ else:
     landcover_data = "landcover_data_031125.csv"
 
 if ENV == "production":
-    USERS_DB_FILE = "/home/hulicupter/flask_app/NEforestry/users_test.db"
+    USERS_DB_FILE = "/home/hulicupter/flask_app/NEforestry/users.db"
     DATA_DB_FILE = "/home/hulicupter/flask_app/NEforestry/data.db"
 else:
-    USERS_DB_FILE = "users_test.db"
+    USERS_DB_FILE = "users.db"
     DATA_DB_FILE = "data.db"
 
 
@@ -2043,13 +2074,6 @@ app.layout = html.Div([
     dcc.Store(id="user-email", data="", storage_type="session"),
     html.Div(id="page-content"),  # will be either login_layout or survey_layout
     dcc.Store(id="dummy-output"),
-
-    html.Script(children=f"""
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){{dataLayer.push(arguments);}}
-    gtag('js', new Date());
-    gtag('config', '{GA_ID}');
-    """),
 
     dcc.ConfirmDialog(
         id="submit-confirm",
