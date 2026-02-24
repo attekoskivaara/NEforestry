@@ -1,5 +1,5 @@
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail, Email, Personalization
+from sendgrid.helpers.mail import Mail, Email, Personalization, Header
 from dotenv import load_dotenv
 import os
 import csv
@@ -11,19 +11,19 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 if not SENDGRID_API_KEY:
     raise ValueError("SendGrid API key not found!")
 
-FROM_EMAIL = "akoskivaara@umass.edu"
-REPLY_TO_EMAIL = "attekoskivaara@luke.fi"
+FROM_EMAIL = "survey@neforestvisions.org"
+REPLY_TO_EMAIL = "atte.koskivaara@luke.fi"
 
 print(f"API key: {SENDGRID_API_KEY[:4]}...")  # Näet että key ei ole None
 print(f"From email: {FROM_EMAIL}")           # Varmista että email on verifioitu
 
 
 # Oletetaan, että CSV sisältää sarakkeet: email, first_name, username, password
-recipients_file = "recipients_test_230226_2.csv"
+recipients_file = "recipients_test_240226_atte.csv"
 
 recipients = []
 with open(recipients_file, newline="", encoding="utf-8-sig") as csvfile:
-    reader = csv.DictReader(csvfile, delimiter=';')
+    reader = csv.DictReader(csvfile, delimiter=',')
     for row in reader:
         print(row)
         recipients.append(row)
@@ -85,7 +85,7 @@ Natural Resources Institute Finland (Luke)
         plain_text_content=TEXT
     )
     message.reply_to = Email(REPLY_TO_EMAIL)
-
+    message.add_header(Header("X-Entity-Ref-ID", "survey2026"))
     try:
         response = sg.send(message)
         print(f"Email sent to {email}! Status code: {response.status_code}")
