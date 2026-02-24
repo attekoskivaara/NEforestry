@@ -70,11 +70,9 @@ If you have any questions regarding the survey, please feel free to reply to thi
 Best regards,
 
 Atte Koskivaara
-Visiting Postdoctoral Researcher
-University of Massachusetts Amherst, USA
+Visiting Postdoctoral Researcher, University of Massachusetts Amherst, USA
 
-Researcher
-Natural Resources Institute Finland (Luke)
+Researcher, Natural Resources Institute Finland (Luke)
 """
 
     # Luo ja lähetä viesti

@@ -1,5 +1,11 @@
 DB notet:
 
+Lähtetetään 300 mailin ryppäissä:
+1st_set_recipients_240226.csv:ssä mukana akoskivaara@umass.edu (300
+2nd_set_recipients_240226.csv:ssä mukana atte.koskivaara@luke.fi (300)
+3rd_set_recipients_240226.csv:ssä mukana attekosk@gmail.com (300)
+4th_set_recipients_240226.csv:ssä mukana atte.koskivaara@luke.fi (403)
+
 Pythonanywheressä pitää tehdä:
 	- lisää recipients_2.csv omat mailit testiä varten
 	- Tee uusi users- tietokanta uudella nimellä, mikä rakennettu from: recipients_2.csv
