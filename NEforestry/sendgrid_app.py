@@ -19,11 +19,11 @@ print(f"From email: {FROM_EMAIL}")           # Varmista että email on verifioit
 
 
 # Oletetaan, että CSV sisältää sarakkeet: email, first_name, username, password
-recipients_file = "recipients_test_240226_atte.csv"
+recipients_file = "emailing/4th_set_recipients_240226.csv"
 
 recipients = []
 with open(recipients_file, newline="", encoding="utf-8-sig") as csvfile:
-    reader = csv.DictReader(csvfile, delimiter=',')
+    reader = csv.DictReader(csvfile, delimiter=';')
     for row in reader:
         print(row)
         recipients.append(row)
@@ -62,6 +62,8 @@ Please take the survey here:
 https://www.neforestvisions.org/
 
 Thank you for contributing to a better understanding of forest management and ecosystem service governance in New England. Your input will directly inform future planning and decision-making in the region.
+
+We recommend completing the survey on a computer, as it includes visualizations and interactive elements that are not optimized for small mobile screens.
 
 If you know someone else whose expertise would be valuable for this survey, please feel free to share their contact information with us so we can send them an invitation.
 
