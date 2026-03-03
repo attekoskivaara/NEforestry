@@ -11,7 +11,7 @@ import hashlib
 from flask import session, redirect
 import datetime
 import os
-
+from urllib.parse import parse_qs
 
 def format_question(question):
     if "bold" in question and question["bold"] in question["text"]:
@@ -278,7 +278,7 @@ if ENV == "production":
     USERS_DB_FILE = "/home/hulicupter/flask_app/NEforestry/users_test_230226.db"
     DATA_DB_FILE = "/home/hulicupter/flask_app/NEforestry/data.db"
 else:
-    USERS_DB_FILE = "users_test_230226.db"
+    USERS_DB_FILE = "users_test_030326.db"
     DATA_DB_FILE = "data.db"
 
 
@@ -2219,23 +2219,56 @@ def ensure_user_defaults(email):
 @app.callback(
     Output("page-content", "children"),
     Input("url", "pathname"),
+    Input("url", "search"),
     State("user-email", "data"),
     State("login-state", "data"),
     prevent_initial_call=True
 )
-def display_page(pathname, email, logged_in):
+def display_page(pathname, search, email, logged_in):
+
+    # =====================================
+    # AUTOLOGIN VIA EMAIL PARAMETRI
+    # =====================================
+    if search and "autologin=" in search:
+        params = parse_qs(search.lstrip("?"))
+        auto_email = params.get("autologin", [None])[0]
+
+        if auto_email:
+            conn = sqlite3.connect(USERS_DB_FILE)
+            conn.row_factory = sqlite3.Row
+            c = conn.cursor()
+
+            c.execute("""
+                SELECT email, has_responded
+                FROM users
+                WHERE email = ?
+            """, (auto_email,))
+
+            user = c.fetchone()
+            conn.close()
+
+            if user and user["has_responded"] == 0:
+                session["logged_in"] = True
+                session["email"] = user["email"]
+
+    # =====================================
+    # ROUTING
+    # =====================================
     if pathname == "/survey":
-        if logged_in:
-            db_data = fetch_user_data(email)
-            # 1️⃣ Lasketaan derived values
+
+        if session.get("logged_in"):
+
+            current_email = session.get("email")
+
+            db_data = fetch_user_data(current_email)
+
             data_with_calcs = calculate_derived_values(db_data)
 
-            # 2️⃣ Form defaults (Likertit, muut inputit)
-            form_defaults = populate_form_from_db(data_with_calcs, likert_questions)
+            form_defaults = populate_form_from_db(
+                data_with_calcs,
+                likert_questions
+            )
 
-            ranking_defaults = {q["id"]: form_defaults.get(q["id"]) for q in likert_questions}
-
-            # 3️⃣ Chartit heti laskettujen arvojen perusteella
             sankey_fig = make_sankey(data_with_calcs)
             bar_fig = make_stacked_bar(data_with_calcs)
 
@@ -2243,11 +2276,15 @@ def display_page(pathname, email, logged_in):
                 form_defaults,
                 data_with_calcs,
                 sankey_fig=sankey_fig,
-                bar_fig=bar_fig)
+                bar_fig=bar_fig
+            )
+
         else:
             return login_layout
+
     elif pathname == "/thankyou":
         return thankyou_layout
+
     else:
         return login_layout
 
@@ -3338,12 +3375,17 @@ def submit_responses_callback(
 
     *args
 ):
+    current_email = session.get("email")
+
+    if not current_email:
+        raise ValueError("Missing email in session")
+
     if n_clicks is None or n_clicks == 0:
         raise dash.exceptions.PreventUpdate
 
     # Käyttäjän antamat inputit (vihreä on kannan sarake)
     user_inputs = {
-        "email": user_email,
+        "email": current_email,
         "lumbershare": lumbershare,
         "papershare": papershare,
         "fuelshare": fuelshare,
@@ -3499,6 +3541,19 @@ def submit_responses_callback(
         raise dash.exceptions.PreventUpdate
     # Validation checks...
     save_responses_to_db(user_inputs, likert_answers)
+    current_email = session.get("email")
+
+    conn = sqlite3.connect(USERS_DB_FILE)
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE users
+        SET has_responded = 1
+        WHERE email = ?
+    """, (current_email,))
+
+    conn.commit()
+    conn.close()
     session.clear()
     return "", False, "/thankyou"
 
