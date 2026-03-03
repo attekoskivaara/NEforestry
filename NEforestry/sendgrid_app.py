@@ -19,7 +19,7 @@ print(f"From email: {FROM_EMAIL}")           # Varmista että email on verifioit
 
 
 # Oletetaan, että CSV sisältää sarakkeet: email, first_name, username, password
-recipients_file = "emailing/4th_set_recipients_240226.csv"
+recipients_file = "emailing/5th_set_recipients_260226.csv"
 
 recipients = []
 with open(recipients_file, newline="", encoding="utf-8-sig") as csvfile:

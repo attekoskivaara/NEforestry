@@ -4,7 +4,7 @@ Suunniteltu aikataulu lähetyksille:
 	- Ensimmäiset kierrokset lähetetään 24-6.3.2026
 	- Vastauksien deadline: 31.3.2026
 	
-	- 1. muistutuskierros noin:18.3.2026
+	- 1. muistutuskierros noin:12.3.2026
 	- 2. muistutuskierros noin: 25.3.2026
 
 
@@ -13,10 +13,13 @@ Ensimmäinen kierros:
 25.2.2026 klo 9.31: 2nd_set_recipients_240226.csv:ssä mukana akoskivaara@umass.edu
 25.2.2026 klo 10.03: 3rd_set_recipients_240226.csv:ssä mukana attekosk@gmail.com
 25.2.2026 klo 11.25: 4th_set_recipients_240226.csv:ssä mukana attekosk@gmail.com
+26.2.2026 klo 12.38: 5th_set_recipients_260226.csv (80)
 
-ÄLÄ LAITA ENÄÄ MAILEJA:
+
+ÄLÄ LAITA ENÄÄ MAILEJA NÄILLE:
 welchmill@gmail.com
 parkr4st70@gmail.com
+jturner@meadowsendco.com
 
 DB notet:
 
