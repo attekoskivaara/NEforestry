@@ -1,7 +1,7 @@
 import sqlite3
 
 # tuotannossa lienee users_main.db
-DB_FILE = "users_test_040326.db"
+DB_FILE = "users_main.db"
 
 def add_has_responded_column():
     conn = sqlite3.connect(DB_FILE)
