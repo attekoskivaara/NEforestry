@@ -275,10 +275,10 @@ else:
     landcover_data = "landcover_data_031125.csv"
 
 if ENV == "production":
-    USERS_DB_FILE = "/home/hulicupter/flask_app/NEforestry/users_test_230226.db"
+    USERS_DB_FILE = "/home/hulicupter/flask_app/NEforestry/users_main.db"
     DATA_DB_FILE = "/home/hulicupter/flask_app/NEforestry/data.db"
 else:
-    USERS_DB_FILE = "users_test_230226.db"
+    USERS_DB_FILE = "users_main.db"
     DATA_DB_FILE = "data.db"
 
 
@@ -1208,8 +1208,8 @@ html.Div([
 
              #   html.Label("Total roundwood market size = ", style={"fontWeight": "bold"}),
                 html.Label([
-                    html.Span("Timber harvesting per acre (mcf / acre) ", style={"fontWeight": "bold"}),
-                    html.Span(f"(in 2020: {DEFAULTS['logging_intensity']} mcf/acre)",
+                    html.Span("Timber harvesting / acre / year  (cf / acre) ", style={"fontWeight": "bold"}),
+                    html.Span(f"(in 2020: {DEFAULTS['logging_intensity']} cf/acre/year)",
                                 style={"fontWeight": "normal"})
                     ]),
                 dcc.Slider(
