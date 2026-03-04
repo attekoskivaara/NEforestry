@@ -4,7 +4,7 @@ import csv
 
 # tietokanta tässä
 DB_FILE = "users_main.db"
-CSV_FILE = "2nd_set_recipients_2.csv"
+CSV_FILE = "emailing/1st_round/3rd_set_recipients_2.csv"
 
 # ---------------------------
 # Helper functions
