@@ -3,8 +3,8 @@ import hashlib
 import csv
 
 # tietokanta tässä
-DB_FILE = "users_test_230226.db"
-CSV_FILE = "recipients_test_230226_2.csv"
+DB_FILE = "users_test_040326.db"
+CSV_FILE = "testing/recipients_test_230226_2.csv"
 
 # ---------------------------
 # Helper functions
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     # Lue CSV (oletetaan semicolon-separointi Excelistä)
     with open(CSV_FILE, newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f, delimiter=',')
+        reader = csv.DictReader(f, delimiter=';')
         for row in reader:
             email = row.get("email")
             password = row.get("password")

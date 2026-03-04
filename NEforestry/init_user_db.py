@@ -1,7 +1,7 @@
 import sqlite3
 import hashlib
 
-DB_FILE = "users.db"  # new database file
+DB_FILE = "users_test_040326_2.db"  # new database file
 
 # ---------------------------
 # Helper functions
