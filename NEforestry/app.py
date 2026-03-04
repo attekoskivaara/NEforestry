@@ -275,7 +275,7 @@ else:
     landcover_data = "landcover_data_031125.csv"
 
 if ENV == "production":
-    USERS_DB_FILE = "/home/hulicupter/flask_app/NEforestry/users_test_230226.db"
+    USERS_DB_FILE = "/home/hulicupter/flask_app/NEforestry/users_main.db"
     DATA_DB_FILE = "/home/hulicupter/flask_app/NEforestry/data.db"
 else:
     USERS_DB_FILE = "users_test_030326.db"
