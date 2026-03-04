@@ -1,8 +1,8 @@
 import csv
 import random
 
-input_file = "2nd_set_recipients.csv"
-output_file = "2nd_set_recipients_2.csv"
+input_file = "emailing/1st_round/3rd_set_recipients.csv"
+output_file = "emailing/1st_round/3rd_set_recipients_2.csv"
 
 def generate_password():
     return str(random.randint(10000, 99999))

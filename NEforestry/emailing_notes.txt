@@ -22,6 +22,12 @@ parkr4st70@gmail.com
 jturner@meadowsendco.com
 
 DB notet:
+2nd_round:
+- tee uudestaan email teksti 2nd roundia varten
+- Että saa autologinin toimimaan täytyy tuotannossa lisätä "has_responded" sarake users_main.db kantaan 
+(käytä add_has_responded_column.py).
+
+Pitäisi toimia sitten kun käytän sendgrid_app_2nd_round.py
 
 Lähtetetään noin 300 mailin ryppäissä:
 1st_set_recipients_240226.csv:ssä mukana akoskivaara@umass.edu (300)
