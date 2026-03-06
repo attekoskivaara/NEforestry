@@ -15,12 +15,14 @@ Ensimmäinen kierros:
 25.2.2026 klo 11.25: 4th_set_recipients_240226.csv:ssä mukana attekosk@gmail.com
 26.2.2026 klo 12.38: 5th_set_recipients_260226.csv (80)
 4.3.2026 klo: 14:40: 6th_set_recipients_030426.csv (15)
-
+6.3.2026 klo: 9:??: lähetetty erikseen maililla käyttikset Katie Lindroosille
+6.3.2026 klo: 9:21: 6th_set_recipients_030426_2.csv (14) <- lähetetty sendgrid_app_missing_credentials_maili
 
 ÄLÄ LAITA ENÄÄ MAILEJA NÄILLE:
 welchmill@gmail.com
 parkr4st70@gmail.com
 jturner@meadowsendco.com
+
 
 DB notet:
 päädata: data.db

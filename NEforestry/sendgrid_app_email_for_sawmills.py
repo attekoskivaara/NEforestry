@@ -19,7 +19,7 @@ print(f"From email: {FROM_EMAIL}")           # Varmista että email on verifioit
 
 
 # Oletetaan, että CSV sisältää sarakkeet: email, first_name, username, password
-recipients_file = "emailing/1st_round/sendgrid/6th_set_recipients_040326.csv"
+recipients_file = "emailing/1st_round/sendgrid/vain_attekosk.csv"
 
 recipients = []
 with open(recipients_file, newline="", encoding="utf-8-sig") as csvfile:
@@ -48,11 +48,9 @@ for r in recipients:
     # Viestin sisältö
     TEXT = f"""{greeting}
 
-You have been identified as a key actor in forest management and its practical implementation based on your experience and expertise. It is therefore especially important to understand your perspective on a central question: What should the future forest landscape and forestry in New England look like?
+You have been identified as a key actor in forest management and its practical implementation. The goal of this survey is to better understand how different stakeholders would prioritize forest uses and management decisions in the region.
 
-By sharing your insights on preferred land-use priorities and forest management decisions, you will help identify key priorities, trade-offs, and areas of alignment among stakeholders, and will directly inform future landscape planning and forest management discussions across the region.
-
-In addition, participation provides you with an overview of the current state of New England’s forests, how they are currently utilized, and the broader trade-offs involved in management decisions—offering a structured perspective on how different objectives and ecosystem services interact.
+***You do not need to be an expert on every topic in the survey. Your perspective and practical experience are what matter most. Your input will help shape future forest planning and management discussions in New England.***
 
 Your survey login credentials are:
 Username: {username}
@@ -61,21 +59,20 @@ Password: {password}
 Please take the survey here:
 https://www.neforestvisions.org/
 
-Thank you for contributing to a better understanding of forest management and ecosystem service governance in New England. Your input will directly inform future planning and decision-making in the region.
+The survey provides an overview of the current state of New England’s forests and allows you to explore how different land-use priorities affect the landscape and the services forests provide.
 
 We recommend completing the survey on a computer, as it includes visualizations and interactive elements that are not optimized for small mobile screens.
 
-If you know someone else whose expertise would be valuable for this survey, please feel free to share their contact information with us so we can send them an invitation.
+If you know someone whose expertise would be valuable for this survey, please feel free to share their contact information with us.
 
-If you have any questions regarding the survey, please feel free to reply to this email.
+If you have any questions, please feel free to reply to this email.
 
 Best regards,
 
 Atte Koskivaara
 Visiting Postdoctoral Researcher, University of Massachusetts Amherst, USA
-
 Researcher, Natural Resources Institute Finland (Luke)
-"""
+    """
 
     # Luo ja lähetä viesti
     message = Mail(
