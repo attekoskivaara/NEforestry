@@ -14,14 +14,25 @@ Ensimmäinen kierros:
 25.2.2026 klo 10.03: 3rd_set_recipients_240226.csv:ssä mukana attekosk@gmail.com
 25.2.2026 klo 11.25: 4th_set_recipients_240226.csv:ssä mukana attekosk@gmail.com
 26.2.2026 klo 12.38: 5th_set_recipients_260226.csv (80)
-4.3.2026 klo: 14:40: 6th_set_recipients_030426.csv (15)
+4.3.2026 klo: 14:40: 6th_set_recipients_030326.csv (15)
 6.3.2026 klo: 9:??: lähetetty erikseen maililla käyttikset Katie Lindroosille
-6.3.2026 klo: 9:21: 6th_set_recipients_030426_2.csv (14) <- lähetetty sendgrid_app_missing_credentials_maili
+6.3.2026 klo: 9:21: 6th_set_recipients_030326_2.csv (14) <- lähetetty sendgrid_app_missing_credentials_maili
+6.3.2026 klo: 10.24: 7th_set_recipients_06032026.csv (62)
 
 ÄLÄ LAITA ENÄÄ MAILEJA NÄILLE:
 welchmill@gmail.com
 parkr4st70@gmail.com
 jturner@meadowsendco.com
+
+Toinen maili kierros:
+11.3.2026: tiedosto list_of_all_duplicates_removed.xlsx <- poista vielä ne ketkä ovat jo vastanneet surveyhin!!! 
+	Mainitse että kesto noin 15-20 min
+
+Lähetetyt mailit:
+12.3.2026: 1st_set_2nd_round.csv
+12.3.2026 klo 12.00: 2nd_set_2nd_round.csv
+12.3.2026 klo 12.08: 3rd_set_2nd_round.csv
+13.3.2026 klo 11.04: 4th_set_2nd_round.csv
 
 
 DB notet:

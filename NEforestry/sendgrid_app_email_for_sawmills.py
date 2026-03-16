@@ -19,7 +19,7 @@ print(f"From email: {FROM_EMAIL}")           # Varmista että email on verifioit
 
 
 # Oletetaan, että CSV sisältää sarakkeet: email, first_name, username, password
-recipients_file = "emailing/1st_round/sendgrid/vain_attekosk.csv"
+recipients_file = "emailing/2nd_round/sendgrid/4th_set_2nd_round.csv"
 
 recipients = []
 with open(recipients_file, newline="", encoding="utf-8-sig") as csvfile:
@@ -48,9 +48,13 @@ for r in recipients:
     # Viestin sisältö
     TEXT = f"""{greeting}
 
-You have been identified as a key actor in forest management and its practical implementation. The goal of this survey is to better understand how different stakeholders would prioritize forest uses and management decisions in the region.
+This is a quick reminder about the New England Forest Vision survey.
 
-***You do not need to be an expert on every topic in the survey. Your perspective and practical experience are what matter most. Your input will help shape future forest planning and management discussions in New England.***
+You have been identified as a key actor in forest management and its practical implementation, and your perspective would be very valuable for this research.
+
+The survey takes on average 15–20 minutes to complete and explores how different stakeholders would prioritize forest uses and management decisions in the region.
+
+***You do not need to be an expert on every topic in the survey. Your practical experience and perspective are what matter most.***
 
 Your survey login credentials are:
 Username: {username}
@@ -59,7 +63,7 @@ Password: {password}
 Please take the survey here:
 https://www.neforestvisions.org/
 
-The survey provides an overview of the current state of New England’s forests and allows you to explore how different land-use priorities affect the landscape and the services forests provide.
+The survey also provides an overview of the current state of New England’s forests and allows you to explore how different land-use priorities affect the landscape and the services forests provide.
 
 We recommend completing the survey on a computer, as it includes visualizations and interactive elements that are not optimized for small mobile screens.
 
@@ -72,7 +76,7 @@ Best regards,
 Atte Koskivaara
 Visiting Postdoctoral Researcher, University of Massachusetts Amherst, USA
 Researcher, Natural Resources Institute Finland (Luke)
-    """
+"""
 
     # Luo ja lähetä viesti
     message = Mail(
